@@ -1,10 +1,16 @@
+using System.Text.Json.Serialization;
+using FabriqPro;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddNpgsql<FabriqDbContext>(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 
 var app = builder.Build();

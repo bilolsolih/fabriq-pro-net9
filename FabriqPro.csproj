@@ -27,6 +27,7 @@
     <ItemGroup>
       <Folder Include="Features\Clients\" />
       <Folder Include="uploads\" />
+      <Folder Include="uploads\users\" />
     </ItemGroup>
 
 </Project>

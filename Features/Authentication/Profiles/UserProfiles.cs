@@ -16,7 +16,6 @@ public class UserProfiles : Profile
 
         CreateMap<User, UserDetailDto>();
         CreateMap<UserUpdateDto, User>()
-            .ForMember(dest => dest.Updated, opts => opts.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Role, opts => opts.MapFrom((src, dest) => src.Role ?? dest.Role))
             .ForAllMembers(
                 opts => opts.Condition(

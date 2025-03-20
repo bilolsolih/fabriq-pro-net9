@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using FabriqPro;
+using FabriqPro.Features.Authentication;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,8 +10,11 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddNpgsql<FabriqDbContext>(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+builder.Services.RegisterAuthenticationFeature();
 
 
 var app = builder.Build();
@@ -28,11 +32,13 @@ if (!Directory.Exists(uploadsDir))
     Directory.CreateDirectory(uploadsDir);
 }
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsDir),
-    RequestPath = "/uploads"
-});
+app.UseStaticFiles(
+    new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(uploadsDir),
+        RequestPath = "/uploads"
+    }
+);
 
 app.UseHttpsRedirection();
 

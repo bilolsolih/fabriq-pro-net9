@@ -9,7 +9,7 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("users");
-        
+
         builder.HasKey(user => user.Id);
         builder.HasIndex(user => user.PhoneNumber)
             .IsUnique();
@@ -74,6 +74,7 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
             .HasColumnName("updated")
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
-            .ValueGeneratedOnAddOrUpdate();
+            // Updated column uchun berilgan qiymatlar ignore bo'ladi : update yoki insert paytida
+            .ValueGeneratedOnAdd();
     }
 }

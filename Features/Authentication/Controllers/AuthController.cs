@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using FabriqPro.Core.Exceptions;
 using FabriqPro.Features.Authentication.Controllers.Filters;
 using FabriqPro.Features.Authentication.DTOs;
 using FabriqPro.Features.Authentication.Models;
@@ -19,20 +20,15 @@ public class AuthController(FabriqDbContext context, IMapper mapper, IWebHostEnv
 
         if (payload.ProfilePhoto != null)
         {
-            var usersDir = Path.Combine(webEnv.ContentRootPath, "uploads", "users");
-            if (!Directory.Exists(usersDir))
-            {
-                Directory.CreateDirectory(usersDir);
-            }
+            var fileName = GenerateFileName(
+                firstName: payload.FirstName,
+                lastName: payload.LastName,
+                phoneNumber: payload.PhoneNumber,
+                fileName: payload.ProfilePhoto.FileName
+            );
 
-            var fileName = GenerateFileName(payload);
-
-            var filePath = Path.Combine(usersDir, fileName);
-            await using var fileStream = new FileStream(filePath, FileMode.Create);
-            await payload.ProfilePhoto.CopyToAsync(fileStream);
-            newUser.ProfilePhoto = $"/users/{fileName}";
+            newUser.ProfilePhoto = await SaveUploadFile(payload.ProfilePhoto, fileName, "users");
         }
-
 
         context.Users.Add(newUser);
         await context.SaveChangesAsync();
@@ -48,10 +44,11 @@ public class AuthController(FabriqDbContext context, IMapper mapper, IWebHostEnv
         if (filters is { Search: not null })
         {
             filters.Search = filters.Search.ToLower();
-            usersQuery = usersQuery.Where(user =>
-                user.FirstName.ToLower().Contains(filters.Search) ||
-                user.LastName.ToLower().Contains(filters.Search) ||
-                user.PhoneNumber.Contains(filters.Search)
+            usersQuery = usersQuery.Where(
+                user =>
+                    user.FirstName.ToLower().Contains(filters.Search) ||
+                    user.LastName.ToLower().Contains(filters.Search) ||
+                    user.PhoneNumber.Contains(filters.Search)
             );
         }
 
@@ -68,22 +65,107 @@ public class AuthController(FabriqDbContext context, IMapper mapper, IWebHostEnv
         }
 
         var users = await usersQuery.ProjectTo<UserListDto>(mapper.ConfigurationProvider).ToListAsync();
-        users.ForEach(user =>
-        {
-            if (user.ProfilePhoto != null)
+        users.ForEach(
+            user =>
             {
-                user.ProfilePhoto = $"{baseUrl}{user.ProfilePhoto}";
+                if (user.ProfilePhoto != null)
+                {
+                    user.ProfilePhoto = $"{baseUrl}/{user.ProfilePhoto}";
+                }
             }
-        });
+        );
         return Ok(users);
     }
 
-    private string GenerateFileName(UserCreateDto payload)
+    [HttpGet("retrieve/{id:int}")]
+    public async Task<ActionResult<UserDetailDto>> RetrieveUser(int id)
     {
-        var fileName = new StringBuilder();
-        fileName.Append($"{payload.FirstName}_{payload.LastName}_{payload.PhoneNumber}");
-        fileName.Append($".{payload.ProfilePhoto!.FileName.Split('.').Last()}");
-        fileName = fileName.Replace(" ", string.Empty);
-        return fileName.ToString();
+        var user = await context.Users.ProjectTo<UserDetailDto>(mapper.ConfigurationProvider)
+            .SingleAsync(user => user.Id == id);
+
+        if (user.ProfilePhoto != null)
+        {
+            var baseUrl = HttpContext.GetUploadsBaseUrl();
+            user.ProfilePhoto = $"{baseUrl}/{user.ProfilePhoto}";
+        }
+
+        return Ok(user);
+    }
+
+    [HttpPatch("update/{id:int}")]
+    public async Task<ActionResult<User>> UpdateUser(int id, [FromForm] UserUpdateDto payload)
+    {
+        var user = await context.Users.FindAsync(id);
+        DoesNotExistException.ThrowIfNull(user, nameof(User));
+        if (payload.ProfilePhoto != null && user.ProfilePhoto != null)
+        {
+            DeleteUploadFile(user.ProfilePhoto);
+        }
+
+        mapper.Map(payload, user);
+
+        if (payload.ProfilePhoto != null)
+        {
+            var fileName = GenerateFileName(
+                firstName: payload.FirstName ?? user.FirstName,
+                lastName: payload.LastName ?? user.LastName,
+                phoneNumber: payload.PhoneNumber ?? user.PhoneNumber,
+                fileName: payload.ProfilePhoto.FileName
+            );
+            user.ProfilePhoto = await SaveUploadFile(payload.ProfilePhoto, fileName, "users");
+        }
+
+        await context.SaveChangesAsync();
+        user.Updated = user.Updated.ToLocalTime();
+        user.Created = user.Created.ToLocalTime();
+        return Ok(user);
+    }
+
+    [HttpDelete("delete/{id:int}")]
+    public async Task<ActionResult> DeleteUser(int id)
+    {
+        var user = await context.Users.FindAsync(id);
+        DoesNotExistException.ThrowIfNull(user, nameof(User));
+        if (user.ProfilePhoto != null)
+        {
+            DeleteUploadFile(user.ProfilePhoto);
+        }
+
+        context.Users.Remove(user);
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    private string GenerateFileName(string firstName, string lastName, string phoneNumber, string fileName)
+    {
+        var fileNameBuilder = new StringBuilder();
+        fileNameBuilder.Append($"{firstName}_{lastName}_{phoneNumber}");
+        fileNameBuilder.Append($".{fileName.Split('.').Last()}");
+        fileNameBuilder = fileNameBuilder.Replace(" ", string.Empty);
+        return fileNameBuilder.ToString();
+    }
+
+    private async Task<string> SaveUploadFile(IFormFile file, string fileName, string uploadDirName)
+    {
+        var uploadDirPath = Path.Combine(webEnv.ContentRootPath, "uploads", uploadDirName);
+        if (!Directory.Exists(uploadDirPath))
+        {
+            Directory.CreateDirectory(uploadDirPath);
+        }
+
+        var filePath = Path.Combine(uploadDirPath, fileName);
+        await using var fileStream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(fileStream);
+        return $"users/{fileName}";
+    }
+
+    private bool DeleteUploadFile(string fileName)
+    {
+        var oldPhotoPath = Path.Combine(webEnv.ContentRootPath, "uploads", fileName);
+        var info = new FileInfo(oldPhotoPath);
+
+        if (!info.Exists) return false;
+        info.Delete();
+        return true;
     }
 }

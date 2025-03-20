@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using FabriqPro.Features.Authentication.Controllers.Filters;
 using FabriqPro.Features.Authentication.DTOs;
 using FabriqPro.Features.Authentication.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -39,10 +40,34 @@ public class AuthController(FabriqDbContext context, IMapper mapper, IWebHostEnv
     }
 
     [HttpGet("list")]
-    public async Task<ActionResult<IEnumerable<UserListDto>>> ListUsers()
+    public async Task<ActionResult<IEnumerable<UserListDto>>> ListUsers([FromQuery] UserFilters filters)
     {
         var baseUrl = HttpContext.GetUploadsBaseUrl();
-        var users = await context.Users.ProjectTo<UserListDto>(mapper.ConfigurationProvider).ToListAsync();
+        var usersQuery = context.Users.AsQueryable();
+
+        if (filters is { Search: not null })
+        {
+            filters.Search = filters.Search.ToLower();
+            usersQuery = usersQuery.Where(user =>
+                user.FirstName.ToLower().Contains(filters.Search) ||
+                user.LastName.ToLower().Contains(filters.Search) ||
+                user.PhoneNumber.Contains(filters.Search)
+            );
+        }
+
+        if (filters is { Page: not null, Limit: not null })
+        {
+            usersQuery = usersQuery.Skip((int)(filters.Limit * (filters.Page - 1)));
+            var totalCount = Math.Ceiling((double)(usersQuery.Count() / filters.Page));
+            HttpContext.Response.Headers.Append("totalPages", $"{totalCount}");
+        }
+
+        if (filters is { Limit: not null })
+        {
+            usersQuery = usersQuery.Take((int)filters.Limit);
+        }
+
+        var users = await usersQuery.ProjectTo<UserListDto>(mapper.ConfigurationProvider).ToListAsync();
         users.ForEach(user =>
         {
             if (user.ProfilePhoto != null)

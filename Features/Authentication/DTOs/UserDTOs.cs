@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using FabriqPro.Features.Authentication.Models;
-using Swashbuckle.AspNetCore.Annotations;
+﻿using FabriqPro.Features.Authentication.Models;
 
 namespace FabriqPro.Features.Authentication.DTOs;
 
@@ -10,6 +8,8 @@ public class UserCreateDto
     public required string LastName { get; set; }
     public IFormFile? ProfilePhoto { get; set; }
     public required string PhoneNumber { get; set; }
+    public required string PassportSeries { get; set; }
+    public required DateOnly Birthdate { get; set; }
     public required string Address { get; set; }
     public required UserRoles Role { get; set; }
 }
@@ -30,6 +30,8 @@ public class UserDetailDto
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public required UserRoles Role { get; set; }
+    public required string PassportSeries { get; set; }
+    public required DateOnly Birthdate { get; set; }
     public string? ProfilePhoto { get; set; }
     public required string Address { get; set; }
     public required string PhoneNumber { get; set; }
@@ -43,6 +45,8 @@ public class UserUpdateDto
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public string? PassportSeries { get; set; }
+    public DateOnly? Birthdate { get; set; }
     public UserRoles? Role { get; set; }
     public IFormFile? ProfilePhoto { get; set; }
     public string? Address { get; set; }
@@ -51,6 +55,4 @@ public class UserUpdateDto
     public double? Salary { get; set; }
     public double? WorkingHours { get; set; }
     public string? WorkingDays { get; set; }
-    [SwaggerIgnore]
-    public DateTime? Updated { get; set; }
 }

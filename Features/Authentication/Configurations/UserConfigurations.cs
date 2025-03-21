@@ -46,6 +46,14 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
             .HasColumnName("address")
             .HasMaxLength(128)
             .IsRequired();
+        builder.Property(user => user.PassportSeries)
+            .HasColumnName("passport_series")
+            .HasMaxLength(9)
+            .IsRequired();
+        
+        builder.Property(user => user.Birthdate)
+            .HasColumnName("birthdate")
+            .IsRequired();
 
         builder.Property(user => user.Role)
             .HasColumnName("role")

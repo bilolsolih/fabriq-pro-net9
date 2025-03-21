@@ -1,4 +1,6 @@
-﻿namespace FabriqPro.Features.Authentication.Models;
+﻿using FabriqPro.Features.Products.Models;
+
+namespace FabriqPro.Features.Authentication.Models;
 
 public enum UserRoles
 {
@@ -11,11 +13,13 @@ public enum UserRoles
     Presser,
     Accountant,
     Cleaner,
+    Cook,
 }
 
 public class User
 {
     public int Id { get; set; }
+    public required int DepartmentId { get; set; }
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public string? ProfilePhoto { get; set; }
@@ -29,6 +33,8 @@ public class User
     public double? Salary { get; set; }
     public double? WorkingHours { get; set; }
     public string? WorkingDays { get; set; }
+    
+    public required Department Department { get; set; }
 
     public DateTime Created { get; set; }
     public DateTime Updated { get; set; }

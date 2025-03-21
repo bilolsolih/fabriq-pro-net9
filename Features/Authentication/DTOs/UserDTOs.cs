@@ -4,6 +4,7 @@ namespace FabriqPro.Features.Authentication.DTOs;
 
 public class UserCreateDto
 {
+    public required int DepartmentId { get; set; }
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public IFormFile? ProfilePhoto { get; set; }
@@ -27,6 +28,7 @@ public class UserListDto
 public class UserDetailDto
 {
     public required int Id { get; set; }
+    public required int DepartmentId { get; set; }
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public required UserRoles Role { get; set; }
@@ -43,6 +45,7 @@ public class UserDetailDto
 
 public class UserUpdateDto
 {
+    public int? DepartmentId { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? PassportSeries { get; set; }

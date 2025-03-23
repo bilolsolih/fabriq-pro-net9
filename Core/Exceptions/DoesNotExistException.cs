@@ -9,4 +9,10 @@ public sealed class DoesNotExistException(string message) : Exception(message)
     if (obj == null)
       throw new DoesNotExistException(message);
   }
+
+  public static void ThrowIfNot(bool condition, string message)
+  {
+    if (!condition)
+      throw new DoesNotExistException(message);
+  }
 }

@@ -15,5 +15,8 @@ public static class Extensions
     
     services.AddScoped<ProductTypeRepository>();
     services.AddScoped<ProductTypeService>();
+    
+    services.AddScoped<ProductModelRepository>();
+    services.AddScoped<ProductModelService>();
   }
 }

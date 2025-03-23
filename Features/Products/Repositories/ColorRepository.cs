@@ -14,6 +14,7 @@ public class ColorRepository(FabriqDbContext context)
 
   public async Task<Color> UpdateAsync(Color color)
   {
+    color.Updated = DateTime.UtcNow;
     context.Colors.Update(color);
     await context.SaveChangesAsync();
     return color;

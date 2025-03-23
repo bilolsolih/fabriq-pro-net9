@@ -4,16 +4,16 @@ using FabriqPro.Features.Products.Models;
 
 namespace FabriqPro.Features.Products.Profiles;
 
-public class ColorProfiles : Profile
+public class DepartmentProfiles : Profile
 {
-  public ColorProfiles()
+  public DepartmentProfiles()
   {
-    CreateMap<Color, ColorDetailDto>()
+    CreateMap<Department, DepartmentDetailDto>()
       .ForMember(dest => dest.Created, opts => opts.MapFrom(src => src.Created.ToLocalTime()))
       .ForMember(dest => dest.Updated, opts => opts.MapFrom(src => src.Updated.ToLocalTime()));
-    CreateMap<Color, ColorListDto>();
-    CreateMap<ColorCreateDto, Color>();
-    CreateMap<ColorUpdateDto, Color>()
+    CreateMap<Department, DepartmentListDto>();
+    CreateMap<DepartmentCreateDto, Department>();
+    CreateMap<DepartmentUpdateDto, Department>()
       .ForAllMembers(
         opts => opts.Condition(
           (src, dest, obj) =>

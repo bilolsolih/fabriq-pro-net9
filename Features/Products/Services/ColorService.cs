@@ -25,7 +25,7 @@ public class ColorService(ColorRepository colorRepo, IMapper mapper)
   public async Task<Color> CreateColorAsync(ColorCreateDto payload)
   {
     var alreadyExists = await colorRepo.ExistsByTitleOrColorCodeAsync(payload.Title, payload.ColorCode);
-    AlreadyExistsException.ThrowIf(alreadyExists, $"{nameof(Color)}: {payload}");
+    AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
     return await colorRepo.AddAsync(mapper.Map<Color>(payload));
   }
@@ -36,7 +36,6 @@ public class ColorService(ColorRepository colorRepo, IMapper mapper)
     DoesNotExistException.ThrowIfNull(color, nameof(Color));
 
     mapper.Map(payload, color);
-    color.Updated = DateTime.UtcNow;
     return await colorRepo.UpdateAsync(color);
   }
 
@@ -44,7 +43,7 @@ public class ColorService(ColorRepository colorRepo, IMapper mapper)
   {
     var color = await colorRepo.GetByIdAsync(id);
     DoesNotExistException.ThrowIfNull(color, nameof(Color));
-    
+
     await colorRepo.DeleteAsync(color);
   }
 }

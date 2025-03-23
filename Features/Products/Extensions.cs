@@ -9,5 +9,11 @@ public static class Extensions
   {
     services.AddScoped<ColorRepository>();
     services.AddScoped<ColorService>();
+    
+    services.AddScoped<DepartmentRepository>();
+    services.AddScoped<DepartmentService>();
+    
+    services.AddScoped<ProductTypeRepository>();
+    services.AddScoped<ProductTypeService>();
   }
 }

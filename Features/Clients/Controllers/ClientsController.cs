@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FabriqPro.Features.Clients.Controllers;
 
+// TODO: ClientRepository va ClientService ga ajratish
+
 [ApiController, Route("api/v1/clients")]
 public class ClientsController(FabriqDbContext context, IMapper mapper) : ControllerBase
 {

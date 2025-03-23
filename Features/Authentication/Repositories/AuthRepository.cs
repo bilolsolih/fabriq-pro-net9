@@ -9,14 +9,14 @@ namespace FabriqPro.Features.Authentication.Repositories;
 
 public class AuthRepository(FabriqDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
 {
-    public async Task<User> CreateUserAsync(User user)
+    public async Task<User> AddAsync(User user)
     {
         context.Users.Add(user);
         await context.SaveChangesAsync();
         return user;
     }
 
-    public async Task<List<UserListDto>> ListUsersAsync(UserFilters filters)
+    public async Task<List<UserListDto>> GetAllAsync(UserFilters filters)
     {
         var usersQuery = context.Users.AsQueryable();
 
@@ -47,25 +47,21 @@ public class AuthRepository(FabriqDbContext context, IMapper mapper, IHttpContex
         return users;
     }
 
-    public async Task<UserDetailDto> GetUserDetailAsync(int id)
-    {
-        var user = await context.Users.ProjectTo<UserDetailDto>(mapper.ConfigurationProvider)
-            .SingleAsync(user => user.Id == id);
-        return user;
-    }
-
-    public async Task<User?> GetUserByIdAsync(int id)
+    public async Task<User?> GetByIdAsync(int id)
     {
         var user = await context.Users.FindAsync(id);
         return user;
     }
 
-    public async Task UpdateUserAsync()
+    public async Task<User> UpdateAsync(User user)
     {
+        user.Updated = DateTime.UtcNow;
+        context.Users.Update(user);
         await context.SaveChangesAsync();
+        return user;
     }
 
-    public async Task DeleteUserAsync(User user)
+    public async Task DeleteAsync(User user)
     {
         context.Users.Remove(user);
         await context.SaveChangesAsync();

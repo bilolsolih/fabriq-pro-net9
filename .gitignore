@@ -1,0 +1,16 @@
+.idea/
+*.sln.iml
+
+.vscode/
+.vs/
+*.code-workspace
+Migrations
+*.nupkg
+packages/
+
+appsettings*.json
+appsettings*.Development.json
+
+bin/
+obj/
+uploads/

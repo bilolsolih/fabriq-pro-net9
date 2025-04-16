@@ -2,6 +2,7 @@
 using FabriqPro.Features.Authentication.Models;
 using FabriqPro.Features.Clients.Configurations;
 using FabriqPro.Features.Clients.Models;
+using FabriqPro.Features.ProductParts.Models;
 using FabriqPro.Features.Products.Configurations;
 using FabriqPro.Features.Products.Models;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +24,11 @@ public class FabriqDbContext(DbContextOptions<FabriqDbContext> options) : DbCont
   public DbSet<MaterialType> MaterialTypes { get; set; }
   public DbSet<Material> Materials { get; set; }
   public DbSet<Party> Parties { get; set; }
+  public DbSet<ProductPart> ProductParts { get; set; }
+  public DbSet<ProductPartType> ProductPartTypes { get; set; }
+  public DbSet<ProductPartToDepartment> ProductPartToDepartments { get; set; }
 
-  protected override void OnModelCreating(ModelBuilder builder)
+    protected override void OnModelCreating(ModelBuilder builder)
   {
     base.OnModelCreating(builder);
     builder.ApplyConfiguration(new UserConfigurations());

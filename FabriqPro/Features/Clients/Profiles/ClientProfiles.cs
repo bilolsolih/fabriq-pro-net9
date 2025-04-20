@@ -10,7 +10,6 @@ public class ClientProfiles : Profile
     {
         CreateMap<ClientCreateDto, Client>();
         CreateMap<Client, ClientListDto>()
-            .ForMember(dest => dest.FullName, opts => opts.MapFrom(src => $"{src.FirstName} {src.LastName}"))
             .ForMember(dest => dest.PurchasesCount, opts => opts.MapFrom(src => 0));
         CreateMap<Client, ClientDetailDto>()
             .ForMember(dest => dest.Created, opts => opts.MapFrom(src => src.Created.ToLocalTime()))

@@ -8,6 +8,7 @@ public static class Extensions
     public static void RegisterAuthenticationFeature(this IServiceCollection services)
     {
         services.AddScoped<AuthService>();
+        services.AddScoped<TokenService>();
         services.AddScoped<AuthRepository>();
     }
 }

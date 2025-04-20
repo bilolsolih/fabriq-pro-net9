@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json.Serialization;
 using FabriqPro;
 using FabriqPro.Core;
@@ -6,6 +7,15 @@ using FabriqPro.Features.Products;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(
+  options =>
+  {
+    options.Limits.MaxRequestBodySize = int.MaxValue;
+    options.Listen(IPAddress.Parse("0.0.0.0"), 8888);
+    
+  }
+);
 
 builder.Services.AddOpenApi();
 builder.Services.AddAutoMapper(typeof(Program));
@@ -18,6 +28,18 @@ builder.Services.AddNpgsql<FabriqDbContext>(builder.Configuration.GetConnectionS
 
 builder.Services.RegisterAuthenticationFeature();
 builder.Services.RegisterProductsFeature();
+
+builder.Services.AddCors(
+  options =>
+  {
+    options.AddPolicy(
+      "AllowAll",
+      policy => policy.AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+    );
+  }
+);
 
 
 var app = builder.Build();
@@ -45,6 +67,7 @@ app.UseStaticFiles(
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -12,9 +12,9 @@ public class ProductPartToDepartmentProfiles : Profile
             .ForMember(dest => dest.Created, opts => opts.MapFrom(src => src.Created.ToLocalTime()))
             .ForMember(dest => dest.Updated, opts => opts.MapFrom(src => src.Updated.ToLocalTime()));
 
-        CreateMap<ProductPartToDepartment, ProductPartToDepartmentListDto>()
-            .ForMember(dest => dest.ProductPartName, opts => opts.MapFrom(src => src.ProductPart.Title))
-            .ForMember(dest => dest.DepartmentName, opts => opts.MapFrom(src => src.Department.Title));
+        // CreateMap<ProductPartToDepartment, ProductPartToDepartmentListDto>()
+        //     .ForMember(dest => dest.ProductPartName, opts => opts.MapFrom(src => src.ProductPart.Title))
+        //     .ForMember(dest => dest.DepartmentName, opts => opts.MapFrom(src => src.Department.Title));
 
         CreateMap<ProductPartToDepartmentCreateDto, ProductPartToDepartment>();
 

@@ -11,7 +11,8 @@ public class ClientCreateDto
 public class ClientListDto
 {
     public required int Id { get; set; }
-    public required string FullName { get; set; }
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
     public required string PhoneNumber { get; set; }
     public required string Address { get; set; }
     public required int PurchasesCount { get; set; }

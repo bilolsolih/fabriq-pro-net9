@@ -5,6 +5,7 @@ public record MaterialCreateDto
   public required int ProductTypeId { get; set; }
   public required int MaterialTypeId { get; set; }
   public required int Quantity { get; set; }
+  public required string PartyNumber { get; set; }
 }
 
 public record MaterialListDto

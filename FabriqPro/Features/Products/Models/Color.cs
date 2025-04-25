@@ -1,13 +1,12 @@
-﻿namespace FabriqPro.Features.Products.Models;
+﻿using FabriqPro.Core;
+using FabriqPro.Features.Products.Models.Product;
 
-public class Color
+namespace FabriqPro.Features.Products.Models;
+
+public class Color : BaseModel
 {
-    public int Id { get; set; }
-    public required string Title { get; set; }
-    public required string ColorCode { get; set; }
-    
-    public ICollection<ProductModel> ProductModels { get; set; } = new List<ProductModel>();
-    
-    public DateTime Created { get; set; }
-    public DateTime Updated { get; set; }
+  public required string Title { get; set; }
+  public required string ColorCode { get; set; }
+
+  public ICollection<ProductModel> ProductModels { get; set; } = [];
 }

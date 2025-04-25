@@ -1,5 +1,6 @@
 ﻿using System.Data.Entity;
 using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Material;
 
 namespace FabriqPro.Features.Products.Repositories;
 
@@ -23,8 +24,7 @@ public class MaterialRepository(FabriqDbContext context)
   public async Task<Material?> GetByIdAsync(int materialId)
   {
     return await context.Materials
-      .Include(model => model.MaterialType)
-      .Include(model => model.ProductType)
+      // .Include(model => model.ProductType)
       .Where(model => model.Id == materialId)
       .SingleOrDefaultAsync();
   }
@@ -32,8 +32,7 @@ public class MaterialRepository(FabriqDbContext context)
   public async Task<IEnumerable<Material>> GetAllAsync()
   {
     return await context.Materials
-      .Include(model => model.MaterialType)
-      .Include(model => model.ProductType)
+      // .Include(model => model.ProductType)
       .ToListAsync();
   }
   

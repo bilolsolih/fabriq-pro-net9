@@ -41,11 +41,11 @@ public class ProductPartToDepartmentRepository(FabriqDbContext context)
         return await context.ProductPartToDepartments.AnyAsync(ppd => ppd.Id == id);
     }
 
-    public async Task<bool> ExistsByProductPartAndDepartmentAsync(int productPartId, int departmentId)
+    public async Task<bool> ExistsByProductPartAndDepartmentAsync(int productPartId, int department)
     {
         return await context.ProductPartToDepartments.AnyAsync(ppd =>
-            ppd.ProductPartId == productPartId &&
-            ppd.DepartmentId == departmentId);
+            ppd.ProductPartId == productPartId);
+        // ppd.DepartmentId == department);
     }
 
     public async Task DeleteAsync(ProductPartToDepartment productPartToDepartment)

@@ -1,21 +1,20 @@
 ﻿using FabriqPro.Features.Products.Models;
-using FabriqPro.Features.Products.Models.Product;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FabriqPro.Features.Products.Configurations;
 
-public class ProductToDepartmentConfigurations : IEntityTypeConfiguration<ProductToDepartment>
+public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<MaterialToDepartment>
 {
-  public void Configure(EntityTypeBuilder<ProductToDepartment> builder)
+  public void Configure(EntityTypeBuilder<MaterialToDepartment> builder)
   {
-    builder.ToTable("product_to_department");
+    builder.ToTable("material_to_department");
 
-    builder.HasKey(obj => new { obj.Department, obj.ProductId, obj.PartyId });
+    builder.HasKey(obj => new { obj.Department, obj.UserId, obj.MaterialId, obj.PartyId });
 
-    builder.HasOne(obj => obj.Product)
+    builder.HasOne(obj => obj.Material)
       .WithMany()
-      .HasForeignKey(obj => obj.ProductId);
+      .HasForeignKey(obj => obj.MaterialId);
 
     builder.HasOne(obj => obj.Party)
       .WithMany()
@@ -25,10 +24,10 @@ public class ProductToDepartmentConfigurations : IEntityTypeConfiguration<Produc
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(obj => obj.ProductId)
-      .HasColumnName("product_id")
+    builder.Property(obj => obj.MaterialId)
+      .HasColumnName("material_id")
       .IsRequired();
-    
+
     builder.Property(obj => obj.PartyId)
       .HasColumnName("party_id")
       .IsRequired();

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace FabriqPro.Features.Products.Models;
+namespace FabriqPro.Features.Products.Models.Product;
 
 public class ProductType
 {

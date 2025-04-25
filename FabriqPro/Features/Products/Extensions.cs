@@ -10,14 +10,13 @@ public static class Extensions
     services.AddScoped<ColorRepository>();
     services.AddScoped<ColorService>();
     
-    services.AddScoped<DepartmentRepository>();
-    services.AddScoped<DepartmentService>();
+    // services.AddScoped<DepartmentRepository>();
+    // services.AddScoped<DepartmentService>();
     
     services.AddScoped<ProductTypeRepository>();
     services.AddScoped<ProductTypeService>();
         
     services.AddScoped<MaterialTypeRepository>();
-    services.AddScoped<MaterialTypeService>();
     
     services.AddScoped<ProductModelRepository>();
     services.AddScoped<ProductModelService>();

@@ -1,4 +1,5 @@
 ﻿using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Material;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,12 +14,17 @@ public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<Mater
     builder.HasKey(obj => new { obj.Department, obj.UserId, obj.MaterialId, obj.PartyId });
 
     builder.HasOne(obj => obj.Material)
-      .WithMany()
+      .WithMany(m=>m.MaterialDepartments) // for backwards navigation
       .HasForeignKey(obj => obj.MaterialId);
 
     builder.HasOne(obj => obj.Party)
       .WithMany()
       .HasForeignKey(obj => obj.PartyId);
+
+    builder.HasOne(obj => obj.Color)
+      .WithMany()
+      .HasForeignKey(obj => obj.ColorId)
+      .OnDelete(DeleteBehavior.Restrict);
 
     builder.Property(obj => obj.Department)
       .HasColumnName("department")
@@ -30,6 +36,27 @@ public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<Mater
 
     builder.Property(obj => obj.PartyId)
       .HasColumnName("party_id")
+      .IsRequired();
+
+    builder.Property(obj => obj.ColorId)
+      .HasColumnName("color_id")
+      .IsRequired();
+    
+    builder.Property(obj => obj.Thickness)
+      .HasColumnName("thickness")
+      .IsRequired();
+    
+    builder.Property(obj => obj.Unit)
+      .HasColumnName("unit")
+      .IsRequired();
+    
+        
+    builder.Property(obj => obj.Width)
+      .HasColumnName("width")
+      .IsRequired();
+    
+    builder.Property(obj => obj.HasPatterns)
+      .HasColumnName("has_patterns")
       .IsRequired();
 
     builder.Property(obj => obj.Quantity)

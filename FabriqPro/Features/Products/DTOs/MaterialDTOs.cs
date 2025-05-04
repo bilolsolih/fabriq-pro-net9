@@ -10,14 +10,21 @@ public record MaterialCreateDto
 public record AddMaterialToStorageDto
 {
   public required int MaterialId { get; set; }
+  public required int ColorId { get; set; }
+  public required double Thickness { get; set; }
+  public required double Width { get; set; }
+  public required bool HasPatterns { get; set; }
   public required string PartyNumber { get; set; }
   public required double Quantity { get; set; }
+  public required Unit Unit { get; set; }
 }
 
 public record MaterialTypeListDto
 {
   public required int Id { get; set; }
   public required string Title { get; set; }
+  public required double TotalInKg { get; set; }
+  public required double TotalInMeter { get; set; }
 }
 
 public record MaterialListDto

@@ -10,7 +10,16 @@ public class MaterialProfiles : Profile
   public MaterialProfiles()
   {
     CreateMap<MaterialCreateDto, Material>();
-    CreateMap<Material, MaterialTypeListDto>();
+    
+    CreateMap<Material, MaterialTypeListDto>()
+      .ForMember(
+        dest => dest.TotalInMeter,
+        opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Meter).Sum(md => md.Quantity))
+      ).ForMember(
+        dest => dest.TotalInKg,
+        opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Kg).Sum(md => md.Quantity))
+      );
+    
     CreateMap<MaterialToDepartment, MaterialListDto>()
       .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.Material.Title))
       .ForMember(dest => dest.PartyNumber, opts => opts.MapFrom(src => src.Party.Title))

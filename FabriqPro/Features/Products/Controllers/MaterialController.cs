@@ -45,6 +45,9 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     var material = await context.Materials.FindAsync(payload.MaterialId);
     DoesNotExistException.ThrowIfNull(material, $"materialId: {payload.MaterialId}");
 
+    var color = await context.Colors.FindAsync(payload.ColorId);
+    DoesNotExistException.ThrowIfNull(color, $"colorId: {payload.ColorId}");
+
     await using var transaction = await context.Database.BeginTransactionAsync();
     try
     {
@@ -63,30 +66,30 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
         partyId = party.Id;
       }
 
-      var materialToDepartment = await context.MaterialToDepartments.SingleOrDefaultAsync(m =>
+      var materialToDepartment = await context.MaterialInDepartments.SingleOrDefaultAsync(m =>
         m.Department == Department.Storage &&
         m.UserId == user.Id &&
         m.MaterialId == payload.MaterialId &&
         m.PartyId == partyId
       );
 
-      if (materialToDepartment != null)
-      {
-        materialToDepartment.Quantity += payload.Quantity;
-      }
-      else
-      {
-        var newMaterialToDepartment = new MaterialToDepartment
-        {
-          Department = Department.Storage,
-          UserId = user.Id,
-          MaterialId = material.Id,
-          PartyId = partyId,
-          Quantity = payload.Quantity,
-        };
+      AlreadyExistsException.ThrowIf(materialToDepartment != null, "Material already exists in the department");
 
-        context.MaterialToDepartments.Add(newMaterialToDepartment);
-      }
+      var newMaterialToDepartment = new MaterialToDepartment
+      {
+        Department = Department.Storage,
+        UserId = user.Id,
+        MaterialId = material.Id,
+        PartyId = partyId,
+        ColorId = payload.ColorId,
+        Thickness = payload.Thickness,
+        Width = payload.Width,
+        HasPatterns = payload.HasPatterns,
+        Quantity = payload.Quantity,
+        Unit = payload.Unit,
+      };
+
+      context.MaterialInDepartments.Add(newMaterialToDepartment);
 
       await context.SaveChangesAsync();
 
@@ -95,20 +98,31 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     catch (Exception ex)
     {
       await transaction.RollbackAsync();
-      return BadRequest();
+      throw;
     }
 
     return Ok(payload);
   }
 
-  [HttpGet("list-all-materials")]
-  public async Task<ActionResult<List<MaterialListDto>>> ListAllMaterials()
+  [HttpGet("types")]
+  public async Task<ActionResult<List<MaterialTypeListDto>>> ListAllMaterialTypes()
   {
-    var allMaterials = await context.MaterialToDepartments
+    var allMaterialTypes = await context.Materials
+      .Include(mt => mt.MaterialDepartments)
+      .ProjectTo<MaterialTypeListDto>(mapper.ConfigurationProvider)
+      .ToListAsync();
+
+    return Ok(allMaterialTypes);
+  }
+  
+  [HttpGet("types/{id:int}")]
+  public async Task<ActionResult<List<MaterialListDto>>> ListAllMaterials(int id)
+  {
+    var allMaterials = await context.MaterialInDepartments
       .Include(m => m.User)
       .Include(m => m.Material)
       .Include(m => m.Party)
-      .Where(m => m.Department == Department.Storage)
+      .Where(m => m.Department == Department.Storage && m.MaterialId == id)
       .ProjectTo<MaterialListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 

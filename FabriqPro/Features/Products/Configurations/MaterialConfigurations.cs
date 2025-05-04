@@ -14,11 +14,6 @@ public class MaterialConfigurations : IEntityTypeConfiguration<Material>
     builder.HasIndex(m => m.Title)
       .IsUnique();
 
-    // builder.HasOne(m => m.ProductType)
-    //   .WithMany()
-    //   .HasForeignKey(m => m.ProductTypeId)
-    //   .OnDelete(DeleteBehavior.Restrict);
-
     builder.Property(m => m.Id)
       .HasColumnName("id");
 
@@ -26,11 +21,7 @@ public class MaterialConfigurations : IEntityTypeConfiguration<Material>
       .HasColumnName("title")
       .IsRequired()
       .HasMaxLength(32);
-    //
-    // builder.Property(m => m.ProductTypeId)
-    //   .HasColumnName("product_type_id")
-    //   .IsRequired();
-
+    
     builder.Property(m => m.Created)
       .HasColumnName("created")
       .IsRequired()

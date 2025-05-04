@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Product;
 
 namespace FabriqPro.Features.Products.Profiles;
 

@@ -1,4 +1,4 @@
-﻿namespace FabriqPro.Features.Products.Models;
+﻿namespace FabriqPro.Features.Products.Models.Product;
 
 public class ProductModel
 {

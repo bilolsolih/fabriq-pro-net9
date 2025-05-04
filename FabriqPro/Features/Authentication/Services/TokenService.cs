@@ -8,30 +8,28 @@ namespace FabriqPro.Features.Authentication.Services;
 
 public class TokenService(IConfiguration config)
 {
-    public string GenerateTokenAsync( int id, UserRoles userRole, string login)
+  public string GenerateTokenAsync(User user)
+  {
+    var jwtSettings = config.GetSection("JwtSettings");
+    var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"]!);
+    var claims = new[]
     {
-        var jwtSettings = config.GetSection("JwtSettings");
-        var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"]!);
-        var claims = new[]
-        {
-            new Claim("id", id.ToString()),
-            new Claim("login", login),
-            new Claim("role", userRole.ToString()),
-            new Claim("expiryDate", DateTime.UtcNow.AddHours(6).ToString("O")),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
+      new Claim("id", user.Id.ToString()),
+      new Claim("login", user.PhoneNumber),
+      new Claim("userRole", user.Role.ToString()),
+      new Claim("department", user.Department.ToString()),
+      new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+    };
 
-        var key = new SymmetricSecurityKey(secret);
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    var key = new SymmetricSecurityKey(secret);
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddYears(3),
-            signingCredentials: creds
-        );
+    var token = new JwtSecurityToken(
+      claims: claims,
+      expires: DateTime.Now.AddHours(6),
+      signingCredentials: creds
+    );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
+    return new JwtSecurityTokenHandler().WriteToken(token);
+  }
 }

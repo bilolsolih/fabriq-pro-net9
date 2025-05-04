@@ -2,6 +2,7 @@
 using FabriqPro.Features.Authentication.DTOs;
 using FabriqPro.Features.Authentication.Models;
 using FabriqPro.Features.Authentication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FabriqPro.Features.Authentication.Controllers;
@@ -9,7 +10,7 @@ namespace FabriqPro.Features.Authentication.Controllers;
 [ApiController, Route("api/v1/users")]
 public class AuthController(AuthService service, TokenService tokenService) : ControllerBase
 {
-  [HttpPost("login")]
+  [HttpPost("login"), AllowAnonymous]
   public async Task<ActionResult> Login(LoginDto payload)
   {
     var user = await service.GetUserByPhoneNumberAsync(payload.Login);
@@ -20,7 +21,7 @@ public class AuthController(AuthService service, TokenService tokenService) : Co
 
     if (payload.Password == user.Password)
     {
-      var token = tokenService.GenerateTokenAsync(id: user.Id, userRole: user.Role, login: user.PhoneNumber);
+      var token = tokenService.GenerateTokenAsync(user);
       return Ok(new { AccessToken = token });
     }
 

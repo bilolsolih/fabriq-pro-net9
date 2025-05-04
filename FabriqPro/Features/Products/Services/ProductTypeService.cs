@@ -2,6 +2,7 @@
 using FabriqPro.Core.Exceptions;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Product;
 using FabriqPro.Features.Products.Repositories;
 
 namespace FabriqPro.Features.Products.Services;

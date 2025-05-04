@@ -1,4 +1,5 @@
 ﻿using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Product;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,22 +11,18 @@ public class ProductToDepartmentConfigurations : IEntityTypeConfiguration<Produc
   {
     builder.ToTable("product_to_department");
 
-    builder.HasKey(obj => new { obj.DepartmentId, obj.ProductId, obj.PartyId });
+    builder.HasKey(obj => new { obj.Department, obj.ProductId, obj.PartyId });
 
     builder.HasOne(obj => obj.Product)
       .WithMany()
       .HasForeignKey(obj => obj.ProductId);
 
-    builder.HasOne(obj => obj.Department)
-      .WithMany()
-      .HasForeignKey(obj => obj.DepartmentId);
-
     builder.HasOne(obj => obj.Party)
       .WithMany()
       .HasForeignKey(obj => obj.PartyId);
 
-    builder.Property(obj => obj.DepartmentId)
-      .HasColumnName("department_id")
+    builder.Property(obj => obj.Department)
+      .HasColumnName("department")
       .IsRequired();
 
     builder.Property(obj => obj.ProductId)

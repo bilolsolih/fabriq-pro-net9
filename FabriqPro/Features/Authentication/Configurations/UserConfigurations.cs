@@ -12,10 +12,10 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
 
         builder.HasKey(user => user.Id);
 
-        builder.HasOne(user => user.Department)
-            .WithMany(department => department.Users)
-            .HasForeignKey(user => user.DepartmentId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // builder.HasOne(user => user.Department)
+        //     .WithMany(department => department.Users)
+        //     .HasForeignKey(user => user.DepartmentId)
+        //     .OnDelete(DeleteBehavior.Restrict);
         
         builder.HasIndex(user => user.PhoneNumber)
             .IsUnique();
@@ -23,8 +23,8 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
         builder.Property(user => user.Id)
             .HasColumnName("id");
         
-        builder.Property(user => user.DepartmentId)
-            .HasColumnName("department_id")
+        builder.Property(user => user.Department)
+            .HasColumnName("department")
             .IsRequired();
 
         builder.Property(user => user.FirstName)

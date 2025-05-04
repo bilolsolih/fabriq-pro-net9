@@ -1,4 +1,4 @@
-﻿namespace FabriqPro.Features.Products.Models;
+﻿namespace FabriqPro.Features.Products.Models.Product;
 
 public class Product
 {
@@ -15,5 +15,3 @@ public class Product
     public DateTime Created { get; set; }
     public DateTime Updated { get; set; }
 }
-
-// product qaysi departmentdan qaysi departmentga o'tyapgani

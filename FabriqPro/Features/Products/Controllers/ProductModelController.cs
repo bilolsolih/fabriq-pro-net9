@@ -1,5 +1,6 @@
 ﻿using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Product;
 using FabriqPro.Features.Products.Services;
 using Microsoft.AspNetCore.Mvc;
 

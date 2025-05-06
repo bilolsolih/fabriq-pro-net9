@@ -1,9 +1,10 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using FabriqPro.Features.Products.DTOs;
 using Microsoft.AspNetCore.Authentication.BearerToken;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Xunit.Sdk;
 
 namespace FabriqPro.Tests;
 
@@ -28,11 +29,9 @@ public class MaterialTests(ApplicationFactory factory) : IClassFixture<Applicati
     _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
   }
 
-  public async Task DisposeAsync()
+  public Task DisposeAsync()
   {
-    using var scope = factory.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<FabriqDbContext>();
-    await context.Database.EnsureDeletedAsync();
+    return Task.CompletedTask;
   }
 
   [Fact]
@@ -40,5 +39,9 @@ public class MaterialTests(ApplicationFactory factory) : IClassFixture<Applicati
   {
     var response = await _client.GetAsync("api/v1/materials/types");
     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    var contents = await response.Content.ReadAsStringAsync();
+    var materialTypes = JsonConvert.DeserializeObject<List<MaterialTypeListDto>>(contents);
   }
+  
+  
 }

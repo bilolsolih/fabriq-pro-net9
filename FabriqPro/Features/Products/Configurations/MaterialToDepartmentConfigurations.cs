@@ -10,11 +10,33 @@ public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<Mater
   public void Configure(EntityTypeBuilder<MaterialToDepartment> builder)
   {
     builder.ToTable("material_to_department");
+    builder.HasKey(m => m.Id);
 
-    builder.HasKey(obj => new { obj.Department, obj.UserId, obj.MaterialId, obj.PartyId });
+    builder.HasIndex(obj => new { obj.Department, obj.ToUserId, obj.MaterialId, obj.PartyId })
+      .IsUnique();
+
+    builder.HasOne(obj => obj.Origin)
+      .WithMany(obj => obj.Transfers)
+      .HasForeignKey(obj => obj.OriginId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.AcceptedUser)
+      .WithMany(u => u.AcceptedMaterials)
+      .HasForeignKey(obj => obj.AcceptedUserId)
+      .OnDelete(DeleteBehavior.Restrict);
+    
+    builder.HasOne(obj => obj.FromUser)
+      .WithMany(u => u.SentMaterials)
+      .HasForeignKey(obj => obj.FromUserId)
+      .OnDelete(DeleteBehavior.Restrict);
+    
+    builder.HasOne(obj => obj.ToUser)
+      .WithMany(u => u.ReceivedMaterials)
+      .HasForeignKey(obj => obj.ToUserId)
+      .OnDelete(DeleteBehavior.Restrict);
 
     builder.HasOne(obj => obj.Material)
-      .WithMany(m=>m.MaterialDepartments) // for backwards navigation
+      .WithMany(m => m.MaterialDepartments) // for backwards navigation
       .HasForeignKey(obj => obj.MaterialId);
 
     builder.HasOne(obj => obj.Party)
@@ -25,6 +47,25 @@ public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<Mater
       .WithMany()
       .HasForeignKey(obj => obj.ColorId)
       .OnDelete(DeleteBehavior.Restrict);
+
+    builder.Property(obj => obj.Id)
+      .HasColumnName("id");
+    
+    builder.Property(obj => obj.OriginId)
+      .HasColumnName("origin_id")
+      .IsRequired(false);
+    
+    builder.Property(obj => obj.AcceptedUserId)
+      .HasColumnName("accepted_user_id")
+      .IsRequired();
+    
+    builder.Property(obj => obj.FromUserId)
+      .HasColumnName("from_user_id")
+      .IsRequired();
+    
+    builder.Property(obj => obj.ToUserId)
+      .HasColumnName("to_user_id")
+      .IsRequired();
 
     builder.Property(obj => obj.Department)
       .HasColumnName("department")
@@ -41,20 +82,20 @@ public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<Mater
     builder.Property(obj => obj.ColorId)
       .HasColumnName("color_id")
       .IsRequired();
-    
+
     builder.Property(obj => obj.Thickness)
       .HasColumnName("thickness")
       .IsRequired();
-    
+
     builder.Property(obj => obj.Unit)
       .HasColumnName("unit")
       .IsRequired();
-    
-        
+
+
     builder.Property(obj => obj.Width)
       .HasColumnName("width")
       .IsRequired();
-    
+
     builder.Property(obj => obj.HasPatterns)
       .HasColumnName("has_patterns")
       .IsRequired();

@@ -8,11 +8,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FabriqPro.Tests;
 
-public class ApplicationFactory : WebApplicationFactory<Program>, IDisposable
+public class ApplicationFactory : WebApplicationFactory<Program>
 {
   private FabriqDbContext? _context;
 
-  private void SeedDatabaseWithUsers()
+  private void SeedDatabaseWithUsers(FabriqDbContext context)
   {
     List<User> users =
     [
@@ -41,37 +41,40 @@ public class ApplicationFactory : WebApplicationFactory<Program>, IDisposable
         Password = "storagemaster",
       },
     ];
-    _context.Users.AddRange(users);
-    
+    context.Users.AddRange(users);
+
 
     List<Color> colors =
     [
       new() { Title = "Oq", ColorCode = "#FFFFFF" },
       new() { Title = "Qora", ColorCode = "#000000" },
     ];
-    _context.Colors.AddRange(colors);
+    context.Colors.AddRange(colors);
 
     List<Material> materials = [new() { Title = "XB" }, new() { Title = "Sintetika" }];
-    _context.Materials.AddRange(materials);
+    context.Materials.AddRange(materials);
 
     List<Party> parties =
     [
       new() { Title = "AA-0001" },
       new() { Title = "AA-0002" },
-      new() { Title = "AA-0003" }, 
+      new() { Title = "AA-0003" },
       new() { Title = "AA-0004" }
     ];
-    _context.Parties.AddRange(parties);
-    _context.SaveChanges();
+    context.Parties.AddRange(parties);
+    context.SaveChanges();
 
     List<MaterialToDepartment> materialDepartments =
     [
       new()
       {
+        Status = TransferStatus.Accepted,
+        AcceptedUserId = 1,
+        ToUserId = 1,
+        FromUserId = 2,
         MaterialId = 1,
         ColorId = 1,
         PartyId = 1,
-        UserId = 1,
         Unit = Unit.Kg,
         Quantity = 100,
         Department = Department.Storage,
@@ -81,10 +84,13 @@ public class ApplicationFactory : WebApplicationFactory<Program>, IDisposable
       },
       new()
       {
+        Status = TransferStatus.Accepted,
+        AcceptedUserId = 2,
+        ToUserId = 2,
+        FromUserId = 1,
         MaterialId = 1,
         ColorId = 2,
         PartyId = 2,
-        UserId = 2,
         Unit = Unit.Kg,
         Quantity = 400,
         Department = Department.Storage,
@@ -94,10 +100,13 @@ public class ApplicationFactory : WebApplicationFactory<Program>, IDisposable
       },
       new()
       {
+        Status = TransferStatus.Accepted,
+        AcceptedUserId = 1,
+        ToUserId = 1,
+        FromUserId = 2,
         MaterialId = 2,
         ColorId = 1,
         PartyId = 3,
-        UserId = 1,
         Unit = Unit.Meter,
         Quantity = 400,
         Department = Department.Storage,
@@ -107,10 +116,13 @@ public class ApplicationFactory : WebApplicationFactory<Program>, IDisposable
       },
       new()
       {
+        Status = TransferStatus.Accepted,
+        AcceptedUserId = 2,
+        ToUserId = 2,
+        FromUserId = 1,
         MaterialId = 2,
         ColorId = 2,
         PartyId = 4,
-        UserId = 2,
         Unit = Unit.Meter,
         Quantity = 400,
         Department = Department.Storage,
@@ -119,8 +131,8 @@ public class ApplicationFactory : WebApplicationFactory<Program>, IDisposable
         Width = 100,
       },
     ];
-    _context.MaterialInDepartments.AddRange(materialDepartments);
-    _context.SaveChanges();
+    context.MaterialInDepartments.AddRange(materialDepartments);
+    context.SaveChanges();
   }
 
   protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -141,16 +153,11 @@ public class ApplicationFactory : WebApplicationFactory<Program>, IDisposable
         var sp = services.BuildServiceProvider();
         using var scope = sp.CreateScope();
         _context = scope.ServiceProvider.GetRequiredService<FabriqDbContext>();
+        _context.Database.EnsureDeleted();
         _context.Database.EnsureCreated();
-        SeedDatabaseWithUsers();
+        SeedDatabaseWithUsers(_context);
       }
     );
     base.ConfigureWebHost(builder);
-  }
-
-  public new void Dispose()
-  {
-    
-    base.Dispose();
   }
 }

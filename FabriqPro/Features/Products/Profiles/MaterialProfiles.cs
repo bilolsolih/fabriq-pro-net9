@@ -33,5 +33,13 @@ public class MaterialProfiles : Profile
       .ForMember(dest => dest.AcceptedUserRole, opts => opts.MapFrom(src => src.AcceptedUser.Role))
       .ForMember(dest => dest.Color, opts => opts.MapFrom(src => src.Color.ColorCode))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
+
+    CreateMap<MaterialToDepartment, MaterialFlowListDto>()
+      .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.Material.Title))
+      .ForMember(dest => dest.PartyNumber, opts => opts.MapFrom(src => src.Party.Title))
+      .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
+      .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
+      .ForMember(dest => dest.Color, opts => opts.MapFrom(src => src.Color.ColorCode))
+      .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
   }
 }

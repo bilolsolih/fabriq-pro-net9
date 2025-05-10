@@ -9,34 +9,74 @@ public class SparePartDepartmentConfigurations : IEntityTypeConfiguration<SpareP
   public void Configure(EntityTypeBuilder<SparePartDepartment> builder)
   {
     builder.ToTable("spare_part_department");
-    builder.HasKey(sd => new { sd.Department, sd.UserId, sd.SparePartId });
+    builder.HasKey(sd => new { sd.Department, sd.ToUserId, sd.SparePartId, sd.Status });
 
-    builder.HasOne(sd => sd.SparePart)
+    builder.HasOne(sp => sp.Origin)
+      .WithMany(sp => sp.Transfers)
+      .HasForeignKey(sp => sp.OriginId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.SparePart)
+      .WithMany(m => m.SparePartDepartments)
+      .HasForeignKey(obj => obj.SparePartId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.AcceptedUser)
       .WithMany()
-      .HasForeignKey(sd => sd.SparePartId);
+      .HasForeignKey(obj => obj.AcceptedUserId)
+      .OnDelete(DeleteBehavior.Restrict);
 
-    builder.HasOne(sd => sd.User)
+    builder.HasOne(obj => obj.FromUser)
       .WithMany()
-      .HasForeignKey(sd => sd.UserId);
+      .HasForeignKey(obj => obj.FromUserId)
+      .OnDelete(DeleteBehavior.Restrict);
 
-    builder.Property(sd => sd.Department)
+    builder.HasOne(obj => obj.ToUser)
+      .WithMany()
+      .HasForeignKey(obj => obj.ToUserId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.Property(obj => obj.Id)
+      .HasColumnName("id");
+
+    builder.Property(obj => obj.AcceptedUserId)
+      .HasColumnName("accepted_user_id")
+      .IsRequired();
+
+    builder.Property(obj => obj.FromUserId)
+      .HasColumnName("from_user_id")
+      .IsRequired();
+
+    builder.Property(obj => obj.ToUserId)
+      .HasColumnName("to_user_id")
+      .IsRequired();
+
+    builder.Property(obj => obj.Department)
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(sd => sd.UserId)
-      .HasColumnName("user_id")
+    builder.Property(obj => obj.SparePartId)
+      .HasColumnName("material_id")
       .IsRequired();
 
-    builder.Property(sd => sd.SparePartId)
-      .HasColumnName("spare_part_id")
+    builder.Property(obj => obj.Unit)
+      .HasColumnName("unit")
       .IsRequired();
 
-    builder.Property(sd => sd.Quantity)
+    builder.Property(obj => obj.Quantity)
       .HasColumnName("quantity")
       .IsRequired();
 
-    builder.Property(sd => sd.Unit)
-      .HasColumnName("unit")
-      .IsRequired();
+    builder.Property(obj => obj.Created)
+      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+      .ValueGeneratedOnAdd()
+      .IsRequired()
+      .HasColumnName("created");
+
+    builder.Property(obj => obj.Updated)
+      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+      .ValueGeneratedOnAdd()
+      .IsRequired()
+      .HasColumnName("updated");
   }
 }

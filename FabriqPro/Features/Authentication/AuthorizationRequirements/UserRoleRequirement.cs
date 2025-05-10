@@ -1,5 +1,4 @@
 ﻿using FabriqPro.Features.Authentication.Models;
-using FabriqPro.Features.Products.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace FabriqPro.Features.Authentication.AuthorizationRequirements;

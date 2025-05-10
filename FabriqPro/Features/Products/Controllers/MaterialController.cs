@@ -77,7 +77,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
         HasPatterns = payload.HasPatterns,
         Quantity = payload.Quantity,
         Unit = payload.Unit,
-        Status = TransferStatus.Accepted,
+        Status = ItemStatus.Accepted,
       };
 
       context.MaterialInDepartments.Add(newMaterialToDepartment);
@@ -150,14 +150,127 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       FromUserId = fromUser.Id,
       ToUserId = toUser.Id,
       Quantity = payload.Quantity,
-      Status = TransferStatus.Pending,
+      Status = ItemStatus.Pending,
     };
 
     source.Quantity -= payload.Quantity;
 
     context.MaterialInDepartments.Add(newMaterialToDepartment);
     await context.SaveChangesAsync();
-    
+
     return Ok(payload);
   }
+
+  [HttpGet("materials-sent-to-me"), Authorize(Policy = "CuttingMaster")]
+  public async Task<ActionResult<IEnumerable<MaterialFlowListDto>>> GetMaterialsSentToMe()
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
+
+    var result = await context.MaterialInDepartments
+      .Where(m => m.ToUserId == user.Id)
+      .ProjectTo<MaterialFlowListDto>(mapper.ConfigurationProvider)
+      .ToListAsync();
+
+    return Ok(result);
+  }
+
+  [HttpGet("accept-or-reject-sent-materials/{id:int}"), Authorize(Policy = "CuttingMaster")]
+  public async Task<ActionResult> AcceptOrRejectSentMaterials(int id, [FromBody] bool accept)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
+
+    var material = await context.MaterialInDepartments.SingleOrDefaultAsync(m => m.Id == id);
+    DoesNotExistException.ThrowIfNull(material, $"materialInDepartmentId: {id}");
+
+    if (material.ToUserId != user.Id)
+    {
+      return Forbid("Bu material sizga jo'natilmagan.");
+    }
+
+    if (accept)
+    {
+      material.Status = ItemStatus.Accepted;
+    }
+    else if (!accept)
+    {
+      material.Status = ItemStatus.Rejected;
+      var originalMaterial = await context.MaterialInDepartments.FindAsync(material.OriginId);
+      DoesNotExistException.ThrowIfNull(originalMaterial, "Material rad etildi, Lekin ombordagi ildizi topilmadi.");
+
+      originalMaterial.Quantity += material.Quantity;
+    }
+
+    await context.SaveChangesAsync();
+    return Ok();
+  }
+
+  [HttpPost("return-material-to-storage/{id:int}"), Authorize(Policy = "CuttingMasterOrSuperAdmin")]
+  public async Task<ActionResult> SendMaterialBackToStorage(int id, ReturnMaterialDto payload)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
+
+    var toUser = await context.Users.FindAsync(payload.ToUserId);
+    DoesNotExistException.ThrowIfNull(toUser, "Mavjud bo'lmagan Xodimga material qaytarilyapti.");
+
+    if (toUser.Role != UserRoles.StorageManager)
+    {
+      return Forbid("Material faqat Omborxona menejerlariga qaytarilishi mumkin.");
+    }
+
+    var material = await context.MaterialInDepartments.SingleOrDefaultAsync(m => m.Id == id && m.Status == ItemStatus.Accepted);
+    DoesNotExistException.ThrowIfNull(material, $"materialInDepartmentId: {id}");
+
+    if (user.Role != UserRoles.SuperAdmin || material.ToUserId != user.Id)
+    {
+      return Forbid("Bu amalni bajarish uchun yoki SuperAdmin yoki materialni qabul qilgan Master bo'lishingiz kerak.");
+    }
+
+    if (payload.Quantity > material.Quantity)
+    {
+      return BadRequest("Qaytarilyapgan material miqdori, Masterda mavjud miqdordan ko'p. Amal imkonsiz.");
+    }
+
+    var originMaterial = await context.MaterialInDepartments.FindAsync(material.OriginId);
+    DoesNotExistException.ThrowIfNull(
+      originMaterial,
+      "Material qaytarilmoqchi bo'lindi, lekin ombordagi ildizi topilmadi. Masterga qayerdan o'tkazilgani noma'lum."
+    );
+
+    var newMaterialTransfer = material with
+    {
+      FromUserId = user.Id,
+      ToUserId = toUser.Id,
+      Quantity = payload.ReturnAll == true ? material.Quantity : payload.Quantity,
+      Department = Department.Storage,
+      Status = ItemStatus.ReturnedToStorage,
+    };
+
+    material.Quantity = payload.ReturnAll == true ? 0 : material.Quantity - payload.Quantity;
+    originMaterial.Quantity += payload.ReturnAll == true ? material.Quantity : payload.Quantity;
+    context.MaterialInDepartments.Add(newMaterialTransfer);
+
+    await context.SaveChangesAsync();
+    return Ok();
+
+
+    /*
+     * accept qilingan bo'lishi kerak
+     * masterga tegishli bo'lishi yoki superadmin bo'lishi kerak
+     * qisman yoki to'liq qaytarish imkoni bo'lishi kerak
+     * qanaqa o'lchov birligida qabul qilingan bo'lsa shunda qaytariladi, shuning uchun birlikni tanlay olmasligi kerak
+     * agar omborchi bir nechta bo'lishi mumkin holatlari bo'lsa unda aynan qaysi omborchi ekanini tanlanishi kerak
+     *
+     */
+  }
+
+  /*
+   * O'ziga o'tkazilgan va accept qilingan materiallarning har biridan qanchadur miqdordan tanlab kesish va natijada
+   * maxsulot qismlarini qo'shish, agar mavjud bo'lsa, ko'paytirish uchun API chiqarish kerak
+   */
 }

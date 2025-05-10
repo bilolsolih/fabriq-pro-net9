@@ -1,16 +1,31 @@
-﻿using FabriqPro.Features.Authentication.Models;
+﻿using FabriqPro.Core;
+using FabriqPro.Features.Authentication.Models;
 
 namespace FabriqPro.Features.Products.Models.Accessory;
 
-public class AccessoryDepartment
+public record AccessoryDepartment : BaseModelRecord
 {
   public required Department Department { get; set; }
-  public required int UserId { get; set; }
-  public User User { get; set; }
+
+  public int? OriginId { get; set; }
+  public AccessoryDepartment Origin { get; set; }
+
+  public ICollection<AccessoryDepartment> Transfers { get; set; } = [];
+
+  public required int AcceptedUserId { get; set; }
+  public User AcceptedUser { get; set; }
+
+  public required int FromUserId { get; set; }
+  public User FromUser { get; set; }
+
+  public required int ToUserId { get; set; }
+  public User ToUser { get; set; }
 
   public required int AccessoryId { get; set; }
   public Accessory Accessory { get; set; }
 
   public required double Quantity { get; set; }
   public required Unit Unit { get; set; }
+
+  public required ItemStatus Status { get; set; }
 }

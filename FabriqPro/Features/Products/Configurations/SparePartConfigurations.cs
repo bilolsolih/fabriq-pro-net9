@@ -10,6 +10,7 @@ public class SparePartConfigurations : IEntityTypeConfiguration<SparePart>
   {
     builder.ToTable("spare_parts");
     builder.HasKey(s => s.Id);
+    
     builder.HasIndex(s => s.Title)
       .IsUnique();
 

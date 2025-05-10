@@ -37,19 +37,5 @@ public record MaterialToDepartment : BaseModelRecord
   public required double Quantity { get; set; }
   public required Unit Unit { get; set; }
 
-  public required TransferStatus Status { get; set; }
+  public required ItemStatus Status { get; set; }
 }
-
-// public class MaterialToCuttingMaster : BaseModel
-// {
-//   public required int MaterialToDepartmentId { get; set; }
-//   public MaterialToDepartment Material { get; set; }
-//   
-//   public required int FromUserId { get; set; }
-//   public User FromUser { get; set; }
-//
-//   public required int CuttingMasterId { get; set; }
-//   public User CuttingMaster { get; set; }
-//
-//   public required double Quantity { get; set; }
-// }

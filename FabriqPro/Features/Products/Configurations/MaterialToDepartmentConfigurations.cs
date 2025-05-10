@@ -12,7 +12,7 @@ public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<Mater
     builder.ToTable("material_to_department");
     builder.HasKey(m => m.Id);
 
-    builder.HasIndex(obj => new { obj.Department, obj.ToUserId, obj.MaterialId, obj.PartyId })
+    builder.HasIndex(obj => new { obj.Department, obj.ToUserId, obj.MaterialId, obj.PartyId, obj.Status })
       .IsUnique();
 
     builder.HasOne(obj => obj.Origin)

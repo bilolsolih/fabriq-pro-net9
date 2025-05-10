@@ -68,7 +68,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
     [
       new()
       {
-        Status = TransferStatus.Accepted,
+        Status = ItemStatus.Accepted,
         AcceptedUserId = 1,
         ToUserId = 1,
         FromUserId = 2,
@@ -84,7 +84,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
       },
       new()
       {
-        Status = TransferStatus.Accepted,
+        Status = ItemStatus.Accepted,
         AcceptedUserId = 2,
         ToUserId = 2,
         FromUserId = 1,
@@ -100,7 +100,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
       },
       new()
       {
-        Status = TransferStatus.Accepted,
+        Status = ItemStatus.Accepted,
         AcceptedUserId = 1,
         ToUserId = 1,
         FromUserId = 2,
@@ -116,7 +116,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
       },
       new()
       {
-        Status = TransferStatus.Accepted,
+        Status = ItemStatus.Accepted,
         AcceptedUserId = 2,
         ToUserId = 2,
         FromUserId = 1,

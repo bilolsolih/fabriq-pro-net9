@@ -9,6 +9,7 @@ using FabriqPro.Features.Products.Models.Material;
 using FabriqPro.Features.Products.Models.Product;
 using FabriqPro.Features.Products.Models.SparePart;
 using Microsoft.EntityFrameworkCore;
+using ProductPart = FabriqPro.Features.ProductParts.Models.ProductPart;
 
 namespace FabriqPro;
 

@@ -7,9 +7,12 @@ public enum Unit
   Pack
 }
 
-public enum TransferStatus
+public enum ItemStatus
 {
   Pending,
   Accepted,
-  Rejected
+  Rejected,
+  AcceptedToStorage,
+  ReturnedToStorage,
+  ReturnedToSupplier,
 }

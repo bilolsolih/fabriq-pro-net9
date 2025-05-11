@@ -41,6 +41,10 @@ public class SparePartDepartmentConfigurations : IEntityTypeConfiguration<SpareP
 
     builder.Property(obj => obj.Id)
       .HasColumnName("id");
+        
+    builder.Property(obj => obj.OriginId)
+      .HasColumnName("origin_id")
+      .IsRequired(false);
 
     builder.Property(obj => obj.AcceptedUserId)
       .HasColumnName("accepted_user_id")

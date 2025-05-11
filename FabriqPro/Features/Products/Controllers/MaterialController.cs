@@ -18,11 +18,11 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   [HttpPost("create-new-material"), Authorize(Policy = "SuperAdmin")]
   public async Task<ActionResult<MaterialCreateDto>> CreateMaterial(MaterialCreateDto payload)
   {
-    var alreadyExists = await context.Materials.AnyAsync(m => m.Title.ToLower() == payload.Title.ToLower());
+    var alreadyExists = await context.MaterialTypes.AnyAsync(m => m.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
     var newMaterial = mapper.Map<Material>(payload);
-    context.Materials.Add(newMaterial);
+    context.MaterialTypes.Add(newMaterial);
     await context.SaveChangesAsync();
     return Ok(payload);
   }
@@ -37,7 +37,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     var fromUser = await context.Users.FindAsync(payload.FromUserId);
     DoesNotExistException.ThrowIfNull(fromUser, $"fromUserId: {payload.FromUserId}");
 
-    var material = await context.Materials.FindAsync(payload.MaterialId);
+    var material = await context.MaterialTypes.FindAsync(payload.MaterialId);
     DoesNotExistException.ThrowIfNull(material, $"materialId: {payload.MaterialId}");
 
     var color = await context.Colors.FindAsync(payload.ColorId);
@@ -54,7 +54,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       context.Parties.Add(newParty);
       await context.SaveChangesAsync();
 
-      var materialToDepartment = await context.MaterialInDepartments.SingleOrDefaultAsync(m =>
+      var materialToDepartment = await context.Materials.SingleOrDefaultAsync(m =>
         m.Department == Department.Storage &&
         m.AcceptedUserId == user.Id &&
         m.MaterialId == payload.MaterialId &&
@@ -80,7 +80,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
         Status = ItemStatus.Accepted,
       };
 
-      context.MaterialInDepartments.Add(newMaterialToDepartment);
+      context.Materials.Add(newMaterialToDepartment);
 
       await context.SaveChangesAsync();
 
@@ -98,7 +98,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   [HttpGet("types")]
   public async Task<ActionResult<List<MaterialTypeListDto>>> ListAllMaterialTypes()
   {
-    var allMaterialTypes = await context.Materials
+    var allMaterialTypes = await context.MaterialTypes
       .Include(mt => mt.MaterialDepartments)
       .ProjectTo<MaterialTypeListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
@@ -109,7 +109,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   [HttpGet("types/{id:int}")]
   public async Task<ActionResult<List<MaterialListDto>>> ListAllMaterials(int id)
   {
-    var allMaterials = await context.MaterialInDepartments
+    var allMaterials = await context.Materials
       .Include(m => m.AcceptedUser)
       .Include(m => m.Material)
       .Include(m => m.Party)
@@ -135,7 +135,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       return BadRequest("Faqat Kesish Masteriga o'tkazib berish mumkin.");
     }
 
-    var source = await context.MaterialInDepartments.FindAsync(payload.MaterialToDepartmentId);
+    var source = await context.Materials.FindAsync(payload.MaterialToDepartmentId);
     DoesNotExistException.ThrowIfNull(source, $"materialToDepartmentId: {payload.MaterialToDepartmentId}");
 
     if (payload.Quantity > source.Quantity)
@@ -155,7 +155,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
 
     source.Quantity -= payload.Quantity;
 
-    context.MaterialInDepartments.Add(newMaterialToDepartment);
+    context.Materials.Add(newMaterialToDepartment);
     await context.SaveChangesAsync();
 
     return Ok(payload);
@@ -168,7 +168,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     var user = await context.Users.FindAsync(userId);
     DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
 
-    var result = await context.MaterialInDepartments
+    var result = await context.Materials
       .Where(m => m.ToUserId == user.Id)
       .ProjectTo<MaterialFlowListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
@@ -183,7 +183,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     var user = await context.Users.FindAsync(userId);
     DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
 
-    var material = await context.MaterialInDepartments.SingleOrDefaultAsync(m => m.Id == id);
+    var material = await context.Materials.SingleOrDefaultAsync(m => m.Id == id);
     DoesNotExistException.ThrowIfNull(material, $"materialInDepartmentId: {id}");
 
     if (material.ToUserId != user.Id)
@@ -198,7 +198,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     else if (!accept)
     {
       material.Status = ItemStatus.Rejected;
-      var originalMaterial = await context.MaterialInDepartments.FindAsync(material.OriginId);
+      var originalMaterial = await context.Materials.FindAsync(material.OriginId);
       DoesNotExistException.ThrowIfNull(originalMaterial, "Material rad etildi, Lekin ombordagi ildizi topilmadi.");
 
       originalMaterial.Quantity += material.Quantity;
@@ -223,7 +223,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       return Forbid("Material faqat Omborxona menejerlariga qaytarilishi mumkin.");
     }
 
-    var material = await context.MaterialInDepartments.SingleOrDefaultAsync(m => m.Id == id && m.Status == ItemStatus.Accepted);
+    var material = await context.Materials.SingleOrDefaultAsync(m => m.Id == id && m.Status == ItemStatus.Accepted);
     DoesNotExistException.ThrowIfNull(material, $"materialInDepartmentId: {id}");
 
     if (user.Role != UserRoles.SuperAdmin || material.ToUserId != user.Id)
@@ -236,7 +236,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       return BadRequest("Qaytarilyapgan material miqdori, Masterda mavjud miqdordan ko'p. Amal imkonsiz.");
     }
 
-    var originMaterial = await context.MaterialInDepartments.FindAsync(material.OriginId);
+    var originMaterial = await context.Materials.FindAsync(material.OriginId);
     DoesNotExistException.ThrowIfNull(
       originMaterial,
       "Material qaytarilmoqchi bo'lindi, lekin ombordagi ildizi topilmadi. Masterga qayerdan o'tkazilgani noma'lum."
@@ -253,7 +253,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
 
     material.Quantity = payload.ReturnAll == true ? 0 : material.Quantity - payload.Quantity;
     originMaterial.Quantity += payload.ReturnAll == true ? material.Quantity : payload.Quantity;
-    context.MaterialInDepartments.Add(newMaterialTransfer);
+    context.Materials.Add(newMaterialTransfer);
 
     await context.SaveChangesAsync();
     return Ok();

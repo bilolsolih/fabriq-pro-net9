@@ -18,11 +18,11 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
   [HttpPost("create-new-accessory-type"), Authorize(Policy = "SuperAdmin")]
   public async Task<ActionResult<AccessoryCreateDto>> CreateAccessory(AccessoryCreateDto payload)
   {
-    var alreadyExists = await context.Accessories.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
+    var alreadyExists = await context.AccessoryTypes.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
     var newAccessory = new Accessory { Title = payload.Title };
-    context.Accessories.Add(newAccessory);
+    context.AccessoryTypes.Add(newAccessory);
     await context.SaveChangesAsync();
     return Ok(payload);
   }
@@ -39,11 +39,11 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     if (fromUser.Role != UserRoles.Supplier)
     {
-      return Forbid("Aksessuar qism faqat yetkazib beruvchidan qabul qilib olinishi mumkin.");
+      return Forbid("Aksessuar faqat yetkazib beruvchidan qabul qilib olinishi mumkin.");
     }
 
-    var accessory = await context.Accessories.FindAsync(payload.AccessoryId);
-    DoesNotExistException.ThrowIfNull(accessory, "Omborga mavjud bo'lmagan turdagi 'Aksessuar qism' qo'shilmoqda.");
+    var accessory = await context.AccessoryTypes.FindAsync(payload.AccessoryId);
+    DoesNotExistException.ThrowIfNull(accessory, "Omborga mavjud bo'lmagan turdagi 'Aksessuar' qo'shilmoqda.");
 
     var accessoryDepartment = new AccessoryDepartment
     {
@@ -57,7 +57,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
       Status = ItemStatus.AcceptedToStorage,
     };
 
-    context.AccessoryInDepartments.Add(accessoryDepartment);
+    context.Accessories.Add(accessoryDepartment);
 
     await context.SaveChangesAsync();
 
@@ -67,7 +67,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
   [HttpGet("list-all-accessory-types")]
   public async Task<ActionResult<List<AccessoryTypeListDto>>> ListAllAccessoryTypes()
   {
-    var allAccessories = await context.Accessories
+    var allAccessories = await context.AccessoryTypes
       .ProjectTo<AccessoryTypeListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
@@ -77,7 +77,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
   [HttpGet("list-all-accessories")]
   public async Task<ActionResult<List<AccessoryListDto>>> ListAllAccessories()
   {
-    var allAccessories = await context.AccessoryInDepartments
+    var allAccessories = await context.Accessories
       .Include(sp => sp.AcceptedUser)
       .Include(sp => sp.FromUser)
       .Include(sp => sp.Accessory)
@@ -103,12 +103,12 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
       return BadRequest("Faqat Masterga o'tkazib berish mumkin.");
     }
 
-    var source = await context.AccessoryInDepartments.FindAsync(payload.AccessoryToDepartmentId);
+    var source = await context.Accessories.FindAsync(payload.AccessoryToDepartmentId);
     DoesNotExistException.ThrowIfNull(source, $"accessoryDepartmentId: {payload.AccessoryToDepartmentId}");
 
     if (payload.Quantity > source.Quantity)
     {
-      return BadRequest("O'tkazilayapgan Ehtiyot qism miqdori mavjud miqdordan ko'p.");
+      return BadRequest("O'tkazilayapgan Aksessuar miqdori mavjud miqdordan ko'p.");
     }
 
     var newAccessoryToDepartment = source with
@@ -122,7 +122,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     source.Quantity -= payload.Quantity;
 
-    context.AccessoryInDepartments.Add(newAccessoryToDepartment);
+    context.Accessories.Add(newAccessoryToDepartment);
     await context.SaveChangesAsync();
 
     return Ok(payload);
@@ -135,7 +135,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     var user = await context.Users.FindAsync(userId);
     DoesNotExistException.ThrowIfNull(user, $"userId: {userId}. Yangittan login qilib qayta urinib ko'ring.");
 
-    var result = await context.AccessoryInDepartments
+    var result = await context.Accessories
       .Where(m => m.ToUserId == user.Id)
       .ProjectTo<AccessoryFlowListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
@@ -150,17 +150,17 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     var user = await context.Users.FindAsync(userId);
     DoesNotExistException.ThrowIfNull(user, $"userId: {userId}. Yangittan login qilib qayta urinib ko'ring.");
 
-    var accessory = await context.AccessoryInDepartments.SingleOrDefaultAsync(sp => sp.Id == id);
+    var accessory = await context.Accessories.SingleOrDefaultAsync(sp => sp.Id == id);
     DoesNotExistException.ThrowIfNull(accessory, $"accessoryInDepartmentId: {id}");
 
     if (accessory.Status != ItemStatus.Pending)
     {
-      return Forbid("Bu ehtiyot qism bilan ortiq bu amalni bajarib bo'lmaydi. U qabul/rad qilib bo'lingan.");
+      return Forbid("Bu aksessuar bilan ortiq bu amalni bajarib bo'lmaydi. U qabul/rad qilib bo'lingan.");
     }
 
     if (accessory.ToUserId != user.Id)
     {
-      return Forbid("Bu ehtiyot qism sizga jo'natilmagan.");
+      return Forbid("Bu aksessuar sizga jo'natilmagan.");
     }
 
     if (accept)
@@ -170,8 +170,8 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     else if (!accept)
     {
       accessory.Status = ItemStatus.Rejected;
-      var originalAccessory = await context.AccessoryInDepartments.FindAsync(accessory.OriginId);
-      DoesNotExistException.ThrowIfNull(originalAccessory, "Ehtiyot qism rad etildi, lekin ombordagi ildizi topilmadi.");
+      var originalAccessory = await context.Accessories.FindAsync(accessory.OriginId);
+      DoesNotExistException.ThrowIfNull(originalAccessory, "Aksessuar rad etildi, lekin ombordagi ildizi topilmadi.");
 
       originalAccessory.Quantity += accessory.Quantity;
     }
@@ -188,34 +188,34 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     DoesNotExistException.ThrowIfNull(user, $"userId: {userId}. Yangittan login qilib qayta urinib ko'ring.");
 
     var toUser = await context.Users.FindAsync(payload.ToUserId);
-    DoesNotExistException.ThrowIfNull(toUser, "Mavjud bo'lmagan Xodimga ehtiyot qism qaytarilyapti.");
+    DoesNotExistException.ThrowIfNull(toUser, "Mavjud bo'lmagan Xodimga aksessuar qaytarilyapti.");
 
     if (toUser.Role != UserRoles.StorageManager)
     {
-      return Forbid("Ehtiyot qism faqat Omborxona menejerlariga qaytarilishi mumkin.");
+      return Forbid("Aksessuar faqat Omborxona menejerlariga qaytarilishi mumkin.");
     }
 
-    var accessory = await context.AccessoryInDepartments.SingleOrDefaultAsync(m => m.Id == id);
+    var accessory = await context.Accessories.SingleOrDefaultAsync(m => m.Id == id);
     DoesNotExistException.ThrowIfNull(accessory, $"materialInDepartmentId: {id}");
 
     if (accessory.Status != ItemStatus.Accepted)
     {
-      return Forbid("Ehtiyot qism 'Qabul qilingan' statusida emas.");
+      return Forbid("Aksessuar 'Qabul qilingan' statusida emas.");
     }
 
     if (user.Role != UserRoles.SuperAdmin || accessory.ToUserId != user.Id)
     {
-      return Forbid("Bu amalni bajarish uchun yoki SuperAdmin yoki ehtiyot qismni qabul qilgan Master bo'lishingiz kerak.");
+      return Forbid("Bu amalni bajarish uchun yoki SuperAdmin yoki aksessuar qabul qilgan Master bo'lishingiz kerak.");
     }
 
     if (payload.Quantity > accessory.Quantity)
     {
-      return BadRequest("Qaytarilyapgan ehtiyot qism miqdori Masterda mavjud miqdordan ko'p. Amal imkonsiz.");
+      return BadRequest("Qaytarilyapgan aksessuar miqdori Masterda mavjud miqdordan ko'p. Amal imkonsiz.");
     }
 
-    var originAccessory = await context.AccessoryInDepartments.FindAsync(accessory.OriginId);
+    var originAccessory = await context.Accessories.FindAsync(accessory.OriginId);
     DoesNotExistException.ThrowIfNull(
-      originAccessory, "Ehtiyot qism qaytarilmoqchi bo'lindi, lekin ombordagi ildizi topilmadi."
+      originAccessory, "Aksessuar qaytarilmoqchi bo'lindi, lekin ombordagi ildizi topilmadi."
     );
 
     var newAccessoryTransfer = accessory with
@@ -229,7 +229,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     accessory.Quantity = payload.ReturnAll == true ? 0 : accessory.Quantity - payload.Quantity;
     originAccessory.Quantity += payload.ReturnAll == true ? accessory.Quantity : payload.Quantity;
-    context.AccessoryInDepartments.Add(newAccessoryTransfer);
+    context.Accessories.Add(newAccessoryTransfer);
     await context.SaveChangesAsync();
     return Ok();
   }

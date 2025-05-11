@@ -1,6 +1,8 @@
-﻿namespace FabriqPro.Features.Products.Models.Product;
+﻿using FabriqPro.Core;
 
-public class ProductToDepartment
+namespace FabriqPro.Features.Products.Models.Product;
+
+public record ProductToDepartment : BaseModelRecord
 {
   public required Department Department { get; set; }
 
@@ -11,7 +13,4 @@ public class ProductToDepartment
   public required Party Party { get; set; }
 
   public required int Quantity { get; set; }
-
-  public DateTime Created { get; set; }
-  public DateTime Updated { get; set; }
 }

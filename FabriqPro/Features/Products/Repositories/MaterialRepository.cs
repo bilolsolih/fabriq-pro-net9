@@ -8,7 +8,7 @@ public class MaterialRepository(FabriqDbContext context)
 {
   public async Task<Material> AddAsync(Material material)
   {
-    context.Materials.Add(material);
+    context.MaterialTypes.Add(material);
     await context.SaveChangesAsync();
     return material;
   }
@@ -16,14 +16,14 @@ public class MaterialRepository(FabriqDbContext context)
   public async Task<Material> UpdateAsync(Material material)
   {
     material.Updated = DateTime.UtcNow;
-    context.Materials.Update(material);
+    context.MaterialTypes.Update(material);
     await context.SaveChangesAsync();
     return material;
   }
 
   public async Task<Material?> GetByIdAsync(int materialId)
   {
-    return await context.Materials
+    return await context.MaterialTypes
       // .Include(model => model.ProductType)
       .Where(model => model.Id == materialId)
       .SingleOrDefaultAsync();
@@ -31,20 +31,20 @@ public class MaterialRepository(FabriqDbContext context)
   
   public async Task<IEnumerable<Material>> GetAllAsync()
   {
-    return await context.Materials
+    return await context.MaterialTypes
       // .Include(model => model.ProductType)
       .ToListAsync();
   }
   
   public async Task<bool> ExistsByIdAsync(int id)
   {
-    return await context.Materials.AnyAsync(material => material.Id == id);
+    return await context.MaterialTypes.AnyAsync(material => material.Id == id);
   }
   
 
   public async Task DeleteAsync(Material material)
   {
-    context.Materials.Remove(material);
+    context.MaterialTypes.Remove(material);
     await context.SaveChangesAsync();
   }
 }

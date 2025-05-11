@@ -18,11 +18,11 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
   [HttpPost("create-new-spare-part-type"), Authorize(Policy = "SuperAdmin")]
   public async Task<ActionResult<SparePartCreateDto>> CreateSparePart(SparePartCreateDto payload)
   {
-    var alreadyExists = await context.SpareParts.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
+    var alreadyExists = await context.SparePartTypes.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
     var newSparePart = new SparePart { Title = payload.Title };
-    context.SpareParts.Add(newSparePart);
+    context.SparePartTypes.Add(newSparePart);
     await context.SaveChangesAsync();
     return Ok(payload);
   }
@@ -42,7 +42,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
       return Forbid("Ehtiyot qism faqat yetkazib beruvchidan qabul qilib olinishi mumkin.");
     }
 
-    var sparePart = await context.SpareParts.FindAsync(payload.SparePartId);
+    var sparePart = await context.SparePartTypes.FindAsync(payload.SparePartId);
     DoesNotExistException.ThrowIfNull(sparePart, "Omborga mavjud bo'lmagan turdagi 'Ehtiyot qism' qo'shilmoqda.");
 
     var sparePartDepartment = new SparePartDepartment
@@ -57,7 +57,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
       Status = ItemStatus.AcceptedToStorage,
     };
 
-    context.SparePartInDepartments.Add(sparePartDepartment);
+    context.SpareParts.Add(sparePartDepartment);
 
     await context.SaveChangesAsync();
 
@@ -67,7 +67,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
   [HttpGet("list-all-spare-part-types")]
   public async Task<ActionResult<List<SparePartTypeListDto>>> ListAllSparePartTypes()
   {
-    var allSpareParts = await context.SpareParts
+    var allSpareParts = await context.SparePartTypes
       .ProjectTo<SparePartTypeListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
@@ -77,7 +77,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
   [HttpGet("list-all-spare-parts")]
   public async Task<ActionResult<List<SparePartListDto>>> ListAllSpareParts()
   {
-    var allSpareParts = await context.SparePartInDepartments
+    var allSpareParts = await context.SpareParts
       .Include(sp => sp.AcceptedUser)
       .Include(sp => sp.FromUser)
       .Include(sp => sp.SparePart)
@@ -103,7 +103,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
       return BadRequest("Faqat Masterga o'tkazib berish mumkin.");
     }
 
-    var source = await context.SparePartInDepartments.FindAsync(payload.SparePartToDepartmentId);
+    var source = await context.SpareParts.FindAsync(payload.SparePartToDepartmentId);
     DoesNotExistException.ThrowIfNull(source, $"sparePartDepartmentId: {payload.SparePartToDepartmentId}");
 
     if (payload.Quantity > source.Quantity)
@@ -122,7 +122,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
 
     source.Quantity -= payload.Quantity;
 
-    context.SparePartInDepartments.Add(newSparePartToDepartment);
+    context.SpareParts.Add(newSparePartToDepartment);
     await context.SaveChangesAsync();
 
     return Ok(payload);
@@ -135,7 +135,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
     var user = await context.Users.FindAsync(userId);
     DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
 
-    var result = await context.SparePartInDepartments
+    var result = await context.SpareParts
       .Where(m => m.ToUserId == user.Id)
       .ProjectTo<SparePartFlowListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
@@ -150,7 +150,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
     var user = await context.Users.FindAsync(userId);
     DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
 
-    var sparePart = await context.SparePartInDepartments.SingleOrDefaultAsync(sp => sp.Id == id);
+    var sparePart = await context.SpareParts.SingleOrDefaultAsync(sp => sp.Id == id);
     DoesNotExistException.ThrowIfNull(sparePart, $"sparePartInDepartmentId: {id}");
 
     if (sparePart.Status != ItemStatus.Pending)
@@ -170,7 +170,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
     else if (!accept)
     {
       sparePart.Status = ItemStatus.Rejected;
-      var originalSparePart = await context.SparePartInDepartments.FindAsync(sparePart.OriginId);
+      var originalSparePart = await context.SpareParts.FindAsync(sparePart.OriginId);
       DoesNotExistException.ThrowIfNull(originalSparePart, "Ehtiyot qism rad etildi, lekin ombordagi ildizi topilmadi.");
 
       originalSparePart.Quantity += sparePart.Quantity;
@@ -195,7 +195,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
       return Forbid("Ehtiyot qism faqat Omborxona menejerlariga qaytarilishi mumkin.");
     }
 
-    var sparePart = await context.SparePartInDepartments.SingleOrDefaultAsync(m => m.Id == id);
+    var sparePart = await context.SpareParts.SingleOrDefaultAsync(m => m.Id == id);
     DoesNotExistException.ThrowIfNull(sparePart, $"materialInDepartmentId: {id}");
 
     if (sparePart.Status != ItemStatus.Accepted)
@@ -213,7 +213,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
       return BadRequest("Qaytarilyapgan ehtiyot qism miqdori Masterda mavjud miqdordan ko'p. Amal imkonsiz.");
     }
 
-    var originSparePart = await context.SparePartInDepartments.FindAsync(sparePart.OriginId);
+    var originSparePart = await context.SpareParts.FindAsync(sparePart.OriginId);
     DoesNotExistException.ThrowIfNull(
       originSparePart, "Ehtiyot qism qaytarilmoqchi bo'lindi, lekin ombordagi ildizi topilmadi."
     );
@@ -229,7 +229,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
 
     sparePart.Quantity = payload.ReturnAll == true ? 0 : sparePart.Quantity - payload.Quantity;
     originSparePart.Quantity += payload.ReturnAll == true ? sparePart.Quantity : payload.Quantity;
-    context.SparePartInDepartments.Add(newSparePartTransfer);
+    context.SpareParts.Add(newSparePartTransfer);
     await context.SaveChangesAsync();
     return Ok();
   }

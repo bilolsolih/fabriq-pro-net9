@@ -52,7 +52,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
     context.Colors.AddRange(colors);
 
     List<Material> materials = [new() { Title = "XB" }, new() { Title = "Sintetika" }];
-    context.Materials.AddRange(materials);
+    context.MaterialTypes.AddRange(materials);
 
     List<Party> parties =
     [
@@ -131,7 +131,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         Width = 100,
       },
     ];
-    context.MaterialInDepartments.AddRange(materialDepartments);
+    context.Materials.AddRange(materialDepartments);
     context.SaveChanges();
   }
 

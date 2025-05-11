@@ -1,27 +1,26 @@
-﻿using FabriqPro.Features.Products.Models.SparePart;
+﻿using FabriqPro.Features.Products.Models.Accessory;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FabriqPro.Features.Products.Configurations;
 
-public class SparePartDepartmentConfigurations : IEntityTypeConfiguration<SparePartDepartment>
+public class AccessoryDepartmentConfigurations : IEntityTypeConfiguration<AccessoryDepartment>
 {
-  public void Configure(EntityTypeBuilder<SparePartDepartment> builder)
+  public void Configure(EntityTypeBuilder<AccessoryDepartment> builder)
   {
-    builder.ToTable("spare_part_department");
+    builder.ToTable("accessory_department");
     builder.HasKey(src => src.Id);
-    
-    builder.HasIndex(src => new { src.Department, src.ToUserId, src.SparePartId, src.Status })
-      .IsUnique();
 
-    builder.HasOne(sp => sp.Origin)
-      .WithMany(sp => sp.Transfers)
-      .HasForeignKey(sp => sp.OriginId)
+    builder.HasIndex(sd => new { sd.Department, sd.ToUserId, sd.AccessoryId, sd.Status }).IsUnique();
+
+    builder.HasOne(obj => obj.Origin)
+      .WithMany(obj => obj.Transfers)
+      .HasForeignKey(obj => obj.OriginId)
       .OnDelete(DeleteBehavior.Restrict);
 
-    builder.HasOne(obj => obj.SparePart)
-      .WithMany(m => m.SparePartDepartments)
-      .HasForeignKey(obj => obj.SparePartId)
+    builder.HasOne(obj => obj.Accessory)
+      .WithMany(m => m.AccessoryDepartments)
+      .HasForeignKey(obj => obj.AccessoryId)
       .OnDelete(DeleteBehavior.Restrict);
 
     builder.HasOne(obj => obj.AcceptedUser)
@@ -58,8 +57,8 @@ public class SparePartDepartmentConfigurations : IEntityTypeConfiguration<SpareP
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(obj => obj.SparePartId)
-      .HasColumnName("spare_part_id")
+    builder.Property(obj => obj.AccessoryId)
+      .HasColumnName("accessory_id")
       .IsRequired();
 
     builder.Property(obj => obj.Unit)

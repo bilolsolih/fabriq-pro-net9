@@ -142,8 +142,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
 
     return Ok(result);
   }
-
-  // pastdagi ikkalasi qoldi
+  
   [HttpGet("accept-or-reject-sent-spare-parts/{id:int}"), Authorize(Policy = "Master")]
   public async Task<ActionResult> AcceptOrRejectSentSpareParts(int id, [FromBody] bool accept)
   {

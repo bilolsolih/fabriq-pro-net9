@@ -1,34 +1,35 @@
-﻿using FabriqPro.Features.Products.Models.SparePart;
+﻿using FabriqPro.Features.Products.Models.Accessory;
+using FabriqPro.Features.Products.Models.SparePart;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FabriqPro.Features.Products.Configurations;
 
-public class SparePartConfigurations : IEntityTypeConfiguration<SparePart>
+public class AccessoryConfigurations : IEntityTypeConfiguration<Accessory>
 {
-  public void Configure(EntityTypeBuilder<SparePart> builder)
+  public void Configure(EntityTypeBuilder<Accessory> builder)
   {
-    builder.ToTable("spare_parts");
-    builder.HasKey(s => s.Id);
-    
-    builder.HasIndex(s => s.Title)
+    builder.ToTable("accessories");
+    builder.HasKey(a => a.Id);
+
+    builder.HasIndex(a => a.Title)
       .IsUnique();
 
-    builder.Property(s => s.Id)
+    builder.Property(a => a.Id)
       .HasColumnName("id");
 
-    builder.Property(s => s.Title)
+    builder.Property(a => a.Title)
       .HasColumnName("title")
       .HasMaxLength(64)
       .IsRequired();
 
-    builder.Property(s => s.Created)
+    builder.Property(a => a.Created)
       .HasColumnName("created")
       .ValueGeneratedOnAdd()
       .HasDefaultValueSql("CURRENT_TIMESTAMP")
       .IsRequired();
 
-    builder.Property(s => s.Updated)
+    builder.Property(a => a.Updated)
       .HasColumnName("updated")
       .ValueGeneratedOnAdd()
       .HasDefaultValueSql("CURRENT_TIMESTAMP")

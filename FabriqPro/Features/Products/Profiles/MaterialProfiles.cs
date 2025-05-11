@@ -9,9 +9,9 @@ public class MaterialProfiles : Profile
 {
   public MaterialProfiles()
   {
-    CreateMap<MaterialCreateDto, Material>();
+    CreateMap<MaterialTypeCreateDto, MaterialType>();
 
-    CreateMap<Material, MaterialTypeListDto>()
+    CreateMap<MaterialType, MaterialTypeListDto>()
       .ForMember(
         dest => dest.TotalInMeter,
         opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Meter).Sum(md => md.Quantity))
@@ -23,7 +23,7 @@ public class MaterialProfiles : Profile
         opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Pack).Sum(md => md.Quantity))
       );
 
-    CreateMap<MaterialToDepartment, MaterialListDto>()
+    CreateMap<Material, MaterialListDto>()
       .ForMember(dest => dest.PartyNumber, opts => opts.MapFrom(src => src.Party.Title))
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
@@ -34,8 +34,8 @@ public class MaterialProfiles : Profile
       .ForMember(dest => dest.Color, opts => opts.MapFrom(src => src.Color.ColorCode))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
 
-    CreateMap<MaterialToDepartment, MaterialFlowListDto>()
-      .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.Material.Title))
+    CreateMap<Material, MaterialFlowListDto>()
+      .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.MaterialType.Title))
       .ForMember(dest => dest.PartyNumber, opts => opts.MapFrom(src => src.Party.Title))
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))

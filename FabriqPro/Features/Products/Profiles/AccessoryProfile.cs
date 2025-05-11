@@ -8,8 +8,8 @@ public class AccessoryProfile : Profile
 {
   public AccessoryProfile()
   {
-    CreateMap<Accessory, AccessoryTypeListDto>();
-    CreateMap<AccessoryDepartment, AccessoryListDto>()
+    CreateMap<AccessoryType, AccessoryTypeListDto>();
+    CreateMap<Accessory, AccessoryListDto>()
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
       .ForMember(dest => dest.ToUser, opts => opts.MapFrom(src => $"{src.ToUser.FirstName} {src.ToUser.LastName}"))
@@ -18,7 +18,7 @@ public class AccessoryProfile : Profile
       .ForMember(dest => dest.AcceptedUserRole, opts => opts.MapFrom(src => src.AcceptedUser.Role))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
     
-    CreateMap<AccessoryDepartment, AccessoryFlowListDto>()
+    CreateMap<Accessory, AccessoryFlowListDto>()
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));

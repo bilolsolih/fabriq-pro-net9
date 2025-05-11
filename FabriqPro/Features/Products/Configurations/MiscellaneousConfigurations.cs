@@ -8,30 +8,81 @@ public class MiscellaneousConfigurations : IEntityTypeConfiguration<Miscellaneou
 {
   public void Configure(EntityTypeBuilder<Miscellaneous> builder)
   {
-    builder.ToTable("miscellaneous");
-    builder.HasKey(a => a.Id);
+    builder.ToTable("miscellaneous_department");
+    builder.HasKey(src => src.Id);
 
-    builder.HasIndex(a => a.Title)
-      .IsUnique();
+    builder.HasIndex(sd => new { sd.Department, sd.ToUserId, MiscellaneousId = sd.MiscellaneousTypeId, sd.Status }).IsUnique();
 
-    builder.Property(a => a.Id)
+    builder.HasOne(obj => obj.Origin)
+      .WithMany(obj => obj.Transfers)
+      .HasForeignKey(obj => obj.OriginId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.MiscellaneousType)
+      .WithMany(m => m.Miscellaneous)
+      .HasForeignKey(obj => obj.MiscellaneousTypeId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.AcceptedUser)
+      .WithMany()
+      .HasForeignKey(obj => obj.AcceptedUserId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.FromUser)
+      .WithMany()
+      .HasForeignKey(obj => obj.FromUserId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.ToUser)
+      .WithMany()
+      .HasForeignKey(obj => obj.ToUserId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.Property(obj => obj.Id)
       .HasColumnName("id");
 
-    builder.Property(a => a.Title)
-      .HasColumnName("title")
-      .HasMaxLength(64)
+    builder.Property(obj => obj.OriginId)
+      .HasColumnName("origin_id")
+      .IsRequired(false);
+
+    builder.Property(obj => obj.AcceptedUserId)
+      .HasColumnName("accepted_user_id")
       .IsRequired();
 
-    builder.Property(a => a.Created)
-      .HasColumnName("created")
-      .ValueGeneratedOnAdd()
-      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+    builder.Property(obj => obj.FromUserId)
+      .HasColumnName("from_user_id")
       .IsRequired();
 
-    builder.Property(a => a.Updated)
-      .HasColumnName("updated")
-      .ValueGeneratedOnAdd()
-      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+    builder.Property(obj => obj.ToUserId)
+      .HasColumnName("to_user_id")
       .IsRequired();
+
+    builder.Property(obj => obj.Department)
+      .HasColumnName("department")
+      .IsRequired();
+
+    builder.Property(obj => obj.MiscellaneousTypeId)
+      .HasColumnName("miscellaneous_id")
+      .IsRequired();
+
+    builder.Property(obj => obj.Unit)
+      .HasColumnName("unit")
+      .IsRequired();
+
+    builder.Property(obj => obj.Quantity)
+      .HasColumnName("quantity")
+      .IsRequired();
+
+    builder.Property(obj => obj.Created)
+      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+      .ValueGeneratedOnAdd()
+      .IsRequired()
+      .HasColumnName("created");
+
+    builder.Property(obj => obj.Updated)
+      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+      .ValueGeneratedOnAdd()
+      .IsRequired()
+      .HasColumnName("updated");
   }
 }

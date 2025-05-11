@@ -1,10 +1,8 @@
-﻿namespace FabriqPro.Features.Products.Models;
+﻿using FabriqPro.Core;
 
-public class Party
+namespace FabriqPro.Features.Products.Models;
+
+public class Party : BaseModel
 {
-  public int Id { get; set; }
   public required string Title { get; set; }
-
-  public DateTime Created { get; set; }
-  public DateTime Updated { get; set; }
 }

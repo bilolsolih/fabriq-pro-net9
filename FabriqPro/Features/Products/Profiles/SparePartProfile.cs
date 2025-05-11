@@ -8,8 +8,8 @@ public class SparePartProfile : Profile
 {
   public SparePartProfile()
   {
-    CreateMap<SparePart, SparePartTypeListDto>();
-    CreateMap<SparePartDepartment, SparePartListDto>()
+    CreateMap<SparePartType, SparePartTypeListDto>();
+    CreateMap<SparePart, SparePartListDto>()
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
       .ForMember(dest => dest.ToUser, opts => opts.MapFrom(src => $"{src.ToUser.FirstName} {src.ToUser.LastName}"))
@@ -18,7 +18,7 @@ public class SparePartProfile : Profile
       .ForMember(dest => dest.AcceptedUserRole, opts => opts.MapFrom(src => src.AcceptedUser.Role))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
     
-    CreateMap<SparePartDepartment, SparePartFlowListDto>()
+    CreateMap<SparePart, SparePartFlowListDto>()
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));

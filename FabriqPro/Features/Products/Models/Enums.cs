@@ -1,5 +1,16 @@
 ﻿namespace FabriqPro.Features.Products.Models;
 
+public enum Department
+{
+  Storage,
+  Cutting,
+  Sewing,
+  Cleaning,
+  Pressing,
+  Packaging
+}
+
+
 public enum Unit
 {
   Kg,
@@ -15,4 +26,5 @@ public enum ItemStatus
   AcceptedToStorage,
   ReturnedToStorage,
   ReturnedToSupplier,
+  AddedByMaster,
 }

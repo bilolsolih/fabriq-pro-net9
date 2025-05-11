@@ -51,7 +51,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
     ];
     context.Colors.AddRange(colors);
 
-    List<Material> materials = [new() { Title = "XB" }, new() { Title = "Sintetika" }];
+    List<MaterialType> materials = [new() { Title = "XB" }, new() { Title = "Sintetika" }];
     context.MaterialTypes.AddRange(materials);
 
     List<Party> parties =
@@ -64,7 +64,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
     context.Parties.AddRange(parties);
     context.SaveChanges();
 
-    List<MaterialToDepartment> materialDepartments =
+    List<Material> materialDepartments =
     [
       new()
       {

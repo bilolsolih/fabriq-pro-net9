@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FabriqPro.Features.Products.Configurations;
 
-public class AccessoryDepartmentConfigurations : IEntityTypeConfiguration<AccessoryDepartment>
+public class AccessoryDepartmentConfigurations : IEntityTypeConfiguration<Accessory>
 {
-  public void Configure(EntityTypeBuilder<AccessoryDepartment> builder)
+  public void Configure(EntityTypeBuilder<Accessory> builder)
   {
     builder.ToTable("accessory_department");
     builder.HasKey(src => src.Id);
@@ -18,7 +18,7 @@ public class AccessoryDepartmentConfigurations : IEntityTypeConfiguration<Access
       .HasForeignKey(obj => obj.OriginId)
       .OnDelete(DeleteBehavior.Restrict);
 
-    builder.HasOne(obj => obj.Accessory)
+    builder.HasOne(obj => obj.AccessoryType)
       .WithMany(m => m.AccessoryDepartments)
       .HasForeignKey(obj => obj.AccessoryId)
       .OnDelete(DeleteBehavior.Restrict);

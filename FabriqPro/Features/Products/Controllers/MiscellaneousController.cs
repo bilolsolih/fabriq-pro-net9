@@ -21,7 +21,7 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
     var alreadyExists = await context.MiscellaneousTypes.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
-    var newMiscellaneous = new Miscellaneous { Title = payload.Title };
+    var newMiscellaneous = new MiscellaneousType { Title = payload.Title };
     context.MiscellaneousTypes.Add(newMiscellaneous);
     await context.SaveChangesAsync();
     return Ok(payload);
@@ -45,13 +45,13 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
     var miscellaneousType = await context.MiscellaneousTypes.FindAsync(payload.MiscellaneousId);
     DoesNotExistException.ThrowIfNull(miscellaneousType, "Omborga mavjud bo'lmagan turdagi narsa qo'shilmoqda.");
 
-    var miscellaneousDepartment = new MiscellaneousDepartment
+    var miscellaneousDepartment = new Miscellaneous
     {
       Department = Department.Storage,
       FromUserId = payload.FromUserId,
       AcceptedUserId = user.Id,
       ToUserId = user.Id,
-      MiscellaneousId = miscellaneousType.Id,
+      MiscellaneousTypeId = miscellaneousType.Id,
       Quantity = payload.Quantity,
       Unit = payload.Unit,
       Status = ItemStatus.AcceptedToStorage,
@@ -80,7 +80,7 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
     var allAccessories = await context.Miscellaneous
       .Include(sp => sp.AcceptedUser)
       .Include(sp => sp.FromUser)
-      .Include(sp => sp.Miscellaneous)
+      .Include(sp => sp.MiscellaneousType)
       .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage)
       .ProjectTo<MiscellaneousListDto>(mapper.ConfigurationProvider)
       .ToListAsync();

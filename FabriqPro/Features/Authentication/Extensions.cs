@@ -52,11 +52,30 @@ public static class Extensions
           "StorageManagerOrSuperAdmin",
           policy => policy.Requirements.Add(new UserRoleRequirement([UserRoles.SuperAdmin, UserRoles.StorageManager]))
         );
-        options.AddPolicy("CuttingMaster", policy => policy.Requirements.Add(new UserRoleRequirement([UserRoles.CuttingMaster])));
+
+        options.AddPolicy(
+          "CuttingMaster",
+          policy => policy.Requirements.Add(new UserRoleRequirement([UserRoles.CuttingMaster]))
+        );
+
         options.AddPolicy(
           "CuttingMasterOrSuperAdmin",
           policy => policy.Requirements.Add(
             new UserRoleRequirement([UserRoles.SuperAdmin, UserRoles.CuttingMaster])
+          )
+        );
+
+        options.AddPolicy(
+          "SewingMasterOrSuperAdmin",
+          policy => policy.Requirements.Add(
+            new UserRoleRequirement([UserRoles.SuperAdmin, UserRoles.SewingMaster])
+          )
+        );
+
+        options.AddPolicy(
+          "PackagingMasterOrStorageManagerOrSuperAdmin",
+          policy => policy.Requirements.Add(
+            new UserRoleRequirement([UserRoles.SuperAdmin, UserRoles.PackagingMaster, UserRoles.StorageManager])
           )
         );
       }

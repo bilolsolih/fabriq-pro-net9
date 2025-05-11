@@ -1,31 +1,36 @@
-﻿using FabriqPro.Features.Products.Models.Miscellaneous;
+﻿using FabriqPro.Features.Products.Models.ProductPart;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FabriqPro.Features.Products.Configurations;
+namespace FabriqPro.Features.Products.Configurations.ProductPartConfigs;
 
-public class MiscellaneousDepartmentConfigurations : IEntityTypeConfiguration<MiscellaneousDepartment>
+public class ProductPartConfigurations : IEntityTypeConfiguration<ProductPart>
 {
-  public void Configure(EntityTypeBuilder<MiscellaneousDepartment> builder)
+  public void Configure(EntityTypeBuilder<ProductPart> builder)
   {
-    builder.ToTable("miscellaneous_department");
+    builder.ToTable("product_parts");
     builder.HasKey(src => src.Id);
 
-    builder.HasIndex(sd => new { sd.Department, sd.ToUserId, sd.MiscellaneousId, sd.Status }).IsUnique();
+    builder.HasIndex(src => new { src.Department, src.MasterId, src.ProductPartTypeId, src.Status }).IsUnique();
 
     builder.HasOne(obj => obj.Origin)
       .WithMany(obj => obj.Transfers)
       .HasForeignKey(obj => obj.OriginId)
       .OnDelete(DeleteBehavior.Restrict);
 
-    builder.HasOne(obj => obj.Miscellaneous)
-      .WithMany(m => m.MiscellaneousDepartments)
-      .HasForeignKey(obj => obj.MiscellaneousId)
+    builder.HasOne(obj => obj.ProductPartType)
+      .WithMany(m => m.ProductParts)
+      .HasForeignKey(obj => obj.ProductPartTypeId)
       .OnDelete(DeleteBehavior.Restrict);
 
-    builder.HasOne(obj => obj.AcceptedUser)
+    builder.HasOne(obj => obj.ProductModel)
+      .WithMany(m => m.ProductParts)
+      .HasForeignKey(obj => obj.ProductModelId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.Master)
       .WithMany()
-      .HasForeignKey(obj => obj.AcceptedUserId)
+      .HasForeignKey(obj => obj.MasterId)
       .OnDelete(DeleteBehavior.Restrict);
 
     builder.HasOne(obj => obj.FromUser)
@@ -45,28 +50,28 @@ public class MiscellaneousDepartmentConfigurations : IEntityTypeConfiguration<Mi
       .HasColumnName("origin_id")
       .IsRequired(false);
 
-    builder.Property(obj => obj.AcceptedUserId)
-      .HasColumnName("accepted_user_id")
+    builder.Property(obj => obj.MasterId)
+      .HasColumnName("master_id")
       .IsRequired();
 
     builder.Property(obj => obj.FromUserId)
       .HasColumnName("from_user_id")
-      .IsRequired();
+      .IsRequired(false);
 
     builder.Property(obj => obj.ToUserId)
       .HasColumnName("to_user_id")
-      .IsRequired();
+      .IsRequired(false);
 
     builder.Property(obj => obj.Department)
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(obj => obj.MiscellaneousId)
-      .HasColumnName("miscellaneous_id")
+    builder.Property(obj => obj.ProductPartTypeId)
+      .HasColumnName("product_part_type_id")
       .IsRequired();
 
-    builder.Property(obj => obj.Unit)
-      .HasColumnName("unit")
+    builder.Property(obj => obj.ProductModelId)
+      .HasColumnName("product_model_id")
       .IsRequired();
 
     builder.Property(obj => obj.Quantity)

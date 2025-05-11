@@ -15,13 +15,13 @@ namespace FabriqPro.Features.Products.Controllers;
 [ApiController, Route("api/v1/materials"), Authorize]
 public class MaterialController(FabriqDbContext context, IMapper mapper) : ControllerBase
 {
-  [HttpPost("create-new-material"), Authorize(Policy = "SuperAdmin")]
-  public async Task<ActionResult<MaterialCreateDto>> CreateMaterial(MaterialCreateDto payload)
+  [HttpPost("create-new-material-type"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult<MaterialTypeCreateDto>> CreateMaterial(MaterialTypeCreateDto payload)
   {
     var alreadyExists = await context.MaterialTypes.AnyAsync(m => m.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
-    var newMaterial = mapper.Map<Material>(payload);
+    var newMaterial = mapper.Map<MaterialType>(payload);
     context.MaterialTypes.Add(newMaterial);
     await context.SaveChangesAsync();
     return Ok(payload);
@@ -63,7 +63,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
 
       AlreadyExistsException.ThrowIf(materialToDepartment != null, "Material already exists in the department");
 
-      var newMaterialToDepartment = new MaterialToDepartment
+      var newMaterialToDepartment = new Material
       {
         Department = Department.Storage,
         FromUserId = payload.FromUserId,
@@ -111,7 +111,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   {
     var allMaterials = await context.Materials
       .Include(m => m.AcceptedUser)
-      .Include(m => m.Material)
+      .Include(m => m.MaterialType)
       .Include(m => m.Party)
       .Where(m => m.Department == Department.Storage && m.MaterialId == id)
       .ProjectTo<MaterialListDto>(mapper.ConfigurationProvider)
@@ -257,20 +257,5 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
 
     await context.SaveChangesAsync();
     return Ok();
-
-
-    /*
-     * accept qilingan bo'lishi kerak
-     * masterga tegishli bo'lishi yoki superadmin bo'lishi kerak
-     * qisman yoki to'liq qaytarish imkoni bo'lishi kerak
-     * qanaqa o'lchov birligida qabul qilingan bo'lsa shunda qaytariladi, shuning uchun birlikni tanlay olmasligi kerak
-     * agar omborchi bir nechta bo'lishi mumkin holatlari bo'lsa unda aynan qaysi omborchi ekanini tanlanishi kerak
-     *
-     */
   }
-
-  /*
-   * O'ziga o'tkazilgan va accept qilingan materiallarning har biridan qanchadur miqdordan tanlab kesish va natijada
-   * maxsulot qismlarini qo'shish, agar mavjud bo'lsa, ko'paytirish uchun API chiqarish kerak
-   */
 }

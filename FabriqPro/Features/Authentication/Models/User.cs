@@ -40,7 +40,7 @@ public class User : BaseModel
   public double? WorkingHours { get; set; }
   public string? WorkingDays { get; set; }
 
-  public ICollection<MaterialToDepartment> AcceptedMaterials { get; set; } = [];
-  public ICollection<MaterialToDepartment> SentMaterials { get; set; } = [];
-  public ICollection<MaterialToDepartment> ReceivedMaterials { get; set; } = [];
+  public ICollection<Material> AcceptedMaterials { get; set; } = [];
+  public ICollection<Material> SentMaterials { get; set; } = [];
+  public ICollection<Material> ReceivedMaterials { get; set; } = [];
 }

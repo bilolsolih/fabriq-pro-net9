@@ -21,7 +21,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     var alreadyExists = await context.AccessoryTypes.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
-    var newAccessory = new Accessory { Title = payload.Title };
+    var newAccessory = new AccessoryType { Title = payload.Title };
     context.AccessoryTypes.Add(newAccessory);
     await context.SaveChangesAsync();
     return Ok(payload);
@@ -45,7 +45,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     var accessory = await context.AccessoryTypes.FindAsync(payload.AccessoryId);
     DoesNotExistException.ThrowIfNull(accessory, "Omborga mavjud bo'lmagan turdagi 'Aksessuar' qo'shilmoqda.");
 
-    var accessoryDepartment = new AccessoryDepartment
+    var accessoryDepartment = new Accessory
     {
       Department = Department.Storage,
       FromUserId = payload.FromUserId,
@@ -80,7 +80,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     var allAccessories = await context.Accessories
       .Include(sp => sp.AcceptedUser)
       .Include(sp => sp.FromUser)
-      .Include(sp => sp.Accessory)
+      .Include(sp => sp.AccessoryType)
       .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage)
       .ProjectTo<AccessoryListDto>(mapper.ConfigurationProvider)
       .ToListAsync();

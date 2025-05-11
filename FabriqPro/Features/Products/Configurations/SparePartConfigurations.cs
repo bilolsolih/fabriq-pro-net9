@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FabriqPro.Features.Products.Configurations;
 
-public class SparePartConfigurations : IEntityTypeConfiguration<SparePart>
+public class SparePartConfigurations : IEntityTypeConfiguration<SparePartType>
 {
-  public void Configure(EntityTypeBuilder<SparePart> builder)
+  public void Configure(EntityTypeBuilder<SparePartType> builder)
   {
     builder.ToTable("spare_parts");
     builder.HasKey(s => s.Id);

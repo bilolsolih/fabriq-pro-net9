@@ -8,8 +8,8 @@ public class MiscellaneousProfile : Profile
 {
   public MiscellaneousProfile()
   {
-    CreateMap<Miscellaneous, MiscellaneousTypeListDto>();
-    CreateMap<MiscellaneousDepartment, MiscellaneousListDto>()
+    CreateMap<MiscellaneousType, MiscellaneousTypeListDto>();
+    CreateMap<Miscellaneous, MiscellaneousListDto>()
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
       .ForMember(dest => dest.ToUser, opts => opts.MapFrom(src => $"{src.ToUser.FirstName} {src.ToUser.LastName}"))
@@ -18,7 +18,7 @@ public class MiscellaneousProfile : Profile
       .ForMember(dest => dest.AcceptedUserRole, opts => opts.MapFrom(src => src.AcceptedUser.Role))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
     
-    CreateMap<MiscellaneousDepartment, MiscellaneousFlowListDto>()
+    CreateMap<Miscellaneous, MiscellaneousFlowListDto>()
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));

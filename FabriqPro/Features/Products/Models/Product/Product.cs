@@ -9,8 +9,6 @@ public class Product
     
     public required int ProductModelId { get; set; }
     public required ProductModel ProductModel { get; set; }
-    
-    public ICollection<Department> Departments { get; set; } = new List<Department>();
 
     public DateTime Created { get; set; }
     public DateTime Updated { get; set; }

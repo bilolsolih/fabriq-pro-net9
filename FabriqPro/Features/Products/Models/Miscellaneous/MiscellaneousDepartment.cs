@@ -1,19 +1,19 @@
 ﻿using FabriqPro.Core;
 using FabriqPro.Features.Authentication.Models;
 
-namespace FabriqPro.Features.Products.Models.SparePart;
+namespace FabriqPro.Features.Products.Models.Miscellaneous;
 
-public record SparePartDepartment : BaseModelRecord
+public record MiscellaneousDepartment : BaseModelRecord
 {
   public required Department Department { get; set; }
 
   public int? OriginId { get; set; }
-  public SparePartDepartment Origin { get; set; }
+  public MiscellaneousDepartment Origin { get; set; }
 
-  public ICollection<SparePartDepartment> Transfers { get; set; } = [];
+  public ICollection<MiscellaneousDepartment> Transfers { get; set; } = [];
 
-  public required int SparePartId { get; set; }
-  public SparePart SparePart { get; set; }
+  public required int MiscellaneousId { get; set; }
+  public Miscellaneous Miscellaneous { get; set; }
 
   public required int AcceptedUserId { get; set; }
   public User AcceptedUser { get; set; }

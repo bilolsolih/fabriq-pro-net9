@@ -1,16 +1,28 @@
-﻿using FabriqPro.Features.Authentication.Models;
+﻿using FabriqPro.Core;
+using FabriqPro.Features.Authentication.Models;
 
 namespace FabriqPro.Features.Products.Models.Material;
 
-public class MaterialToDepartment
+public record MaterialToDepartment : BaseModelRecord
 {
+  public int? OriginId { get; set; }
+  public MaterialToDepartment Origin { get; set; }
+  
+  public ICollection<MaterialToDepartment> Transfers { get; set; } = [];
+  
   public required Department Department { get; set; }
 
   public required int MaterialId { get; set; }
   public Material Material { get; set; }
 
-  public required int UserId { get; set; }
-  public User User { get; set; }
+  public required int AcceptedUserId { get; set; }
+  public User AcceptedUser { get; set; }
+
+  public required int FromUserId { get; set; }
+  public User FromUser { get; set; }
+
+  public required int ToUserId { get; set; }
+  public User ToUser { get; set; }
 
   public required int PartyId { get; set; }
   public Party Party { get; set; }
@@ -25,6 +37,5 @@ public class MaterialToDepartment
   public required double Quantity { get; set; }
   public required Unit Unit { get; set; }
 
-  public DateTime Created { get; set; }
-  public DateTime Updated { get; set; }
+  public required ItemStatus Status { get; set; }
 }

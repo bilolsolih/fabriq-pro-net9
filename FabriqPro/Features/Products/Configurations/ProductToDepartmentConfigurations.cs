@@ -9,7 +9,8 @@ public class ProductToDepartmentConfigurations : IEntityTypeConfiguration<Produc
 {
   public void Configure(EntityTypeBuilder<ProductToDepartment> builder)
   {
-    builder.ToTable("product_to_department");
+    builder.ToTable("product_department");
+    builder.HasKey(obj => obj.Id);
 
     builder.HasKey(obj => new { obj.Department, obj.ProductId, obj.PartyId });
 

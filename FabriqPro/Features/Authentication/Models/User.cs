@@ -1,5 +1,6 @@
 ﻿using FabriqPro.Core;
 using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Material;
 
 namespace FabriqPro.Features.Authentication.Models;
 
@@ -38,4 +39,8 @@ public class User : BaseModel
   public double? Salary { get; set; }
   public double? WorkingHours { get; set; }
   public string? WorkingDays { get; set; }
+
+  public ICollection<MaterialToDepartment> AcceptedMaterials { get; set; } = [];
+  public ICollection<MaterialToDepartment> SentMaterials { get; set; } = [];
+  public ICollection<MaterialToDepartment> ReceivedMaterials { get; set; } = [];
 }

@@ -5,10 +5,13 @@ using FabriqPro.Features.Clients.Models;
 using FabriqPro.Features.ProductParts.Models;
 using FabriqPro.Features.Products.Configurations;
 using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Accessory;
 using FabriqPro.Features.Products.Models.Material;
+using FabriqPro.Features.Products.Models.Miscellaneous;
 using FabriqPro.Features.Products.Models.Product;
 using FabriqPro.Features.Products.Models.SparePart;
 using Microsoft.EntityFrameworkCore;
+using ProductPart = FabriqPro.Features.ProductParts.Models.ProductPart;
 
 namespace FabriqPro;
 
@@ -21,17 +24,26 @@ public class FabriqDbContext(DbContextOptions<FabriqDbContext> options) : DbCont
   public DbSet<Color> Colors { get; set; }
   public DbSet<ProductType> ProductTypes { get; set; }
   public DbSet<ProductModel> ProductModels { get; set; }
+
   public DbSet<Product> Products { get; set; }
   public DbSet<ProductToDepartment> ProductsToDepartments { get; set; }
-  public DbSet<Material> Materials { get; set; }
+
+  public DbSet<Material> MaterialTypes { get; set; }
+  public DbSet<MaterialToDepartment> Materials { get; set; }
+
   public DbSet<Party> Parties { get; set; }
   public DbSet<ProductPart> ProductParts { get; set; }
   public DbSet<ProductPartType> ProductPartTypes { get; set; }
   public DbSet<ProductPartToDepartment> ProductPartToDepartments { get; set; }
-  public DbSet<MaterialToDepartment> MaterialInDepartments { get; set; }
 
-  public DbSet<SparePart> SpareParts { get; set; }
-  public DbSet<SparePartDepartment> SparePartInDepartments { get; set; }
+  public DbSet<Accessory> AccessoryTypes { get; set; }
+  public DbSet<AccessoryDepartment> Accessories { get; set; }
+
+  public DbSet<SparePart> SparePartTypes { get; set; }
+  public DbSet<SparePartDepartment> SpareParts { get; set; }
+
+  public DbSet<Miscellaneous> MiscellaneousTypes { get; set; }
+  public DbSet<MiscellaneousDepartment> Miscellaneous { get; set; }
 
   protected override void OnModelCreating(ModelBuilder builder)
   {
@@ -48,7 +60,14 @@ public class FabriqDbContext(DbContextOptions<FabriqDbContext> options) : DbCont
     builder.ApplyConfiguration(new MaterialConfigurations());
     builder.ApplyConfiguration(new PartyConfigurations());
     builder.ApplyConfiguration(new MaterialToDepartmentConfigurations());
+
+    builder.ApplyConfiguration(new AccessoryConfigurations());
+    builder.ApplyConfiguration(new AccessoryDepartmentConfigurations());
+
     builder.ApplyConfiguration(new SparePartConfigurations());
     builder.ApplyConfiguration(new SparePartDepartmentConfigurations());
+
+    builder.ApplyConfiguration(new MiscellaneousConfigurations());
+    builder.ApplyConfiguration(new MiscellaneousDepartmentConfigurations());
   }
 }

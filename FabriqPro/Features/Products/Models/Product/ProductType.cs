@@ -1,12 +1,9 @@
-﻿namespace FabriqPro.Features.Products.Models.Product;
+﻿using FabriqPro.Core;
 
-public class ProductType
+namespace FabriqPro.Features.Products.Models.Product;
+
+public class ProductType:BaseModel
 {
-  public int Id { get; set; }
   public required string Title { get; set; }
-
   public ICollection<ProductModel> ProductModels { get; set; } = [];
-
-  public DateTime Created { get; set; }
-  public DateTime Updated { get; set; }
 }

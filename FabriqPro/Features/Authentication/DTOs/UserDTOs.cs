@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using FabriqPro.Features.Authentication.Models;
+using FabriqPro.Features.Products.Models;
 
 namespace FabriqPro.Features.Authentication.DTOs;
 
@@ -16,11 +17,12 @@ public record LoginDto
 
 public class UserCreateDto
 {
-    public required int DepartmentId { get; set; }
+    public required Department Department { get; set; }
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public IFormFile? ProfilePhoto { get; set; }
     public required string PhoneNumber { get; set; }
+    public string? Password { get; set; }
     public required string PassportSeries { get; set; }
     public required DateOnly Birthdate { get; set; }
     public required string Address { get; set; }

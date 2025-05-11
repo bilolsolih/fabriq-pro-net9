@@ -1,68 +1,58 @@
-﻿using FabriqPro.Features.Products.Models;
-using FabriqPro.Features.Products.Models.Material;
+﻿using FabriqPro.Features.Products.Models.Miscellaneous;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FabriqPro.Features.Products.Configurations;
 
-public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<MaterialToDepartment>
+public class MiscellaneousDepartmentConfigurations : IEntityTypeConfiguration<MiscellaneousDepartment>
 {
-  public void Configure(EntityTypeBuilder<MaterialToDepartment> builder)
+  public void Configure(EntityTypeBuilder<MiscellaneousDepartment> builder)
   {
-    builder.ToTable("material_to_department");
-    builder.HasKey(m => m.Id);
+    builder.ToTable("miscellaneous_department");
+    builder.HasKey(src => src.Id);
 
-    builder.HasIndex(obj => new { obj.Department, obj.ToUserId, obj.MaterialId, obj.PartyId, obj.Status })
-      .IsUnique();
+    builder.HasIndex(sd => new { sd.Department, sd.ToUserId, sd.MiscellaneousId, sd.Status }).IsUnique();
 
     builder.HasOne(obj => obj.Origin)
       .WithMany(obj => obj.Transfers)
       .HasForeignKey(obj => obj.OriginId)
       .OnDelete(DeleteBehavior.Restrict);
 
+    builder.HasOne(obj => obj.Miscellaneous)
+      .WithMany(m => m.MiscellaneousDepartments)
+      .HasForeignKey(obj => obj.MiscellaneousId)
+      .OnDelete(DeleteBehavior.Restrict);
+
     builder.HasOne(obj => obj.AcceptedUser)
-      .WithMany(u => u.AcceptedMaterials)
+      .WithMany()
       .HasForeignKey(obj => obj.AcceptedUserId)
       .OnDelete(DeleteBehavior.Restrict);
-    
+
     builder.HasOne(obj => obj.FromUser)
-      .WithMany(u => u.SentMaterials)
+      .WithMany()
       .HasForeignKey(obj => obj.FromUserId)
       .OnDelete(DeleteBehavior.Restrict);
-    
+
     builder.HasOne(obj => obj.ToUser)
-      .WithMany(u => u.ReceivedMaterials)
+      .WithMany()
       .HasForeignKey(obj => obj.ToUserId)
-      .OnDelete(DeleteBehavior.Restrict);
-
-    builder.HasOne(obj => obj.Material)
-      .WithMany(m => m.MaterialDepartments) // for backwards navigation
-      .HasForeignKey(obj => obj.MaterialId);
-
-    builder.HasOne(obj => obj.Party)
-      .WithMany()
-      .HasForeignKey(obj => obj.PartyId);
-
-    builder.HasOne(obj => obj.Color)
-      .WithMany()
-      .HasForeignKey(obj => obj.ColorId)
       .OnDelete(DeleteBehavior.Restrict);
 
     builder.Property(obj => obj.Id)
       .HasColumnName("id");
-    
+
     builder.Property(obj => obj.OriginId)
       .HasColumnName("origin_id")
       .IsRequired(false);
-    
+
     builder.Property(obj => obj.AcceptedUserId)
       .HasColumnName("accepted_user_id")
       .IsRequired();
-    
+
     builder.Property(obj => obj.FromUserId)
       .HasColumnName("from_user_id")
       .IsRequired();
-    
+
     builder.Property(obj => obj.ToUserId)
       .HasColumnName("to_user_id")
       .IsRequired();
@@ -71,33 +61,12 @@ public class MaterialToDepartmentConfigurations : IEntityTypeConfiguration<Mater
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(obj => obj.MaterialId)
-      .HasColumnName("material_id")
-      .IsRequired();
-
-    builder.Property(obj => obj.PartyId)
-      .HasColumnName("party_id")
-      .IsRequired();
-
-    builder.Property(obj => obj.ColorId)
-      .HasColumnName("color_id")
-      .IsRequired();
-
-    builder.Property(obj => obj.Thickness)
-      .HasColumnName("thickness")
+    builder.Property(obj => obj.MiscellaneousId)
+      .HasColumnName("miscellaneous_id")
       .IsRequired();
 
     builder.Property(obj => obj.Unit)
       .HasColumnName("unit")
-      .IsRequired();
-
-
-    builder.Property(obj => obj.Width)
-      .HasColumnName("width")
-      .IsRequired();
-
-    builder.Property(obj => obj.HasPatterns)
-      .HasColumnName("has_patterns")
       .IsRequired();
 
     builder.Property(obj => obj.Quantity)

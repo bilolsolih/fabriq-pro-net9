@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using FabriqPro.Features.Authentication.AuthorizationRequirements;
 using FabriqPro.Features.Authentication.Models;
-using FabriqPro.Features.Products.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace FabriqPro.Features.Authentication.AuthorizationHandlers;

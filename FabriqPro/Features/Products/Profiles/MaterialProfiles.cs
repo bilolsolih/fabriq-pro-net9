@@ -10,7 +10,7 @@ public class MaterialProfiles : Profile
   public MaterialProfiles()
   {
     CreateMap<MaterialCreateDto, Material>();
-    
+
     CreateMap<Material, MaterialTypeListDto>()
       .ForMember(
         dest => dest.TotalInMeter,
@@ -18,13 +18,28 @@ public class MaterialProfiles : Profile
       ).ForMember(
         dest => dest.TotalInKg,
         opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Kg).Sum(md => md.Quantity))
+      ).ForMember(
+        dest => dest.TotalInPack,
+        opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Pack).Sum(md => md.Quantity))
       );
-    
+
     CreateMap<MaterialToDepartment, MaterialListDto>()
+      .ForMember(dest => dest.PartyNumber, opts => opts.MapFrom(src => src.Party.Title))
+      .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
+      .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
+      .ForMember(dest => dest.ToUser, opts => opts.MapFrom(src => $"{src.ToUser.FirstName} {src.ToUser.LastName}"))
+      .ForMember(dest => dest.ToUserRole, opts => opts.MapFrom(src => src.ToUser.Role))
+      .ForMember(dest => dest.AcceptedUser, opts => opts.MapFrom(src => $"{src.AcceptedUser.FirstName} {src.AcceptedUser.LastName}"))
+      .ForMember(dest => dest.AcceptedUserRole, opts => opts.MapFrom(src => src.AcceptedUser.Role))
+      .ForMember(dest => dest.Color, opts => opts.MapFrom(src => src.Color.ColorCode))
+      .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
+
+    CreateMap<MaterialToDepartment, MaterialFlowListDto>()
       .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.Material.Title))
       .ForMember(dest => dest.PartyNumber, opts => opts.MapFrom(src => src.Party.Title))
-      .ForMember(dest => dest.Employee, opts => opts.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"))
-      .ForMember(dest => dest.EmployeeRole, opts => opts.MapFrom(src => src.User.Role))
-      .ForMember(dest => dest.Date, opts => opts.MapFrom(src => DateOnly.FromDateTime(src.Created)));
+      .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))
+      .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
+      .ForMember(dest => dest.Color, opts => opts.MapFrom(src => src.Color.ColorCode))
+      .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
   }
 }

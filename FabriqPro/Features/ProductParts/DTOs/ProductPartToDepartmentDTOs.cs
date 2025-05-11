@@ -1,5 +1,6 @@
 ﻿using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.ProductParts.Models;
+using ProductPart = FabriqPro.Features.ProductParts.Models.ProductPart;
 
 namespace FabriqPro.Features.ProductParts.DTOs;
 

@@ -1,15 +1,48 @@
-﻿namespace FabriqPro.Features.Products.DTOs;
+﻿using FabriqPro.Features.Products.Models;
 
-public record ProductDetailDto
+namespace FabriqPro.Features.Products.DTOs;
+
+public class AddProductToMasterDto
+{
+  public required int ProductTypeId { get; set; }
+  public required int ProductModelId { get; set; }
+  public required int Quantity { get; set; }
+}
+
+public class UpdateAddedProductDto
+{
+  public int? ProductTypeId { get; set; }
+  public int? ProductModelId { get; set; }
+  public int? Quantity { get; set; }
+}
+
+public record ProductsAddedByMeListDto
 {
   public required int Id { get; set; }
-  public required string Title { get; set; }
-  
-  public required ProductModelDetailDto ProductModel { get; set; }
-  public required ProductTypeDetailDto ProductType { get; set; }
+  public required Department Department { get; set; }
+  public required string Master { get; set; }
 
-  public required DateTime Created { get; set; }
-  public required DateTime Updated { get; set; }
+  public string? FromUser { get; set; }
+  public string? ToUser { get; set; }
+
+  public required string ProductModel { get; set; }
+  public required string ProductType { get; set; }
+
+  public required int Quantity { get; set; }
+  public required ItemStatus Status { get; set; }
+}
+
+public record ProductsSentToMeListDto
+{
+  public required int Id { get; set; }
+
+  public string? FromUser { get; set; }
+
+  public required string ProductModel { get; set; }
+  public required string ProductType { get; set; }
+
+  public required int Quantity { get; set; }
+  public required ItemStatus Status { get; set; }
 }
 
 public record ProductListDto

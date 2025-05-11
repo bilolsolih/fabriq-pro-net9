@@ -1,32 +1,37 @@
-﻿using FabriqPro.Features.Products.Models.SparePart;
+﻿using FabriqPro.Features.Products.Models;
+using FabriqPro.Features.Products.Models.Product;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FabriqPro.Features.Products.Configurations;
+namespace FabriqPro.Features.Products.Configurations.ProductConfigs;
 
-public class SparePartDepartmentConfigurations : IEntityTypeConfiguration<SparePart>
+public class ProductConfigurations : IEntityTypeConfiguration<Product>
 {
-  public void Configure(EntityTypeBuilder<SparePart> builder)
+  public void Configure(EntityTypeBuilder<Product> builder)
   {
-    builder.ToTable("spare_part_department");
+    builder.ToTable("products");
     builder.HasKey(src => src.Id);
-    
-    builder.HasIndex(src => new { src.Department, src.ToUserId, src.SparePartId, src.Status })
-      .IsUnique();
 
-    builder.HasOne(sp => sp.Origin)
-      .WithMany(sp => sp.Transfers)
-      .HasForeignKey(sp => sp.OriginId)
+    // builder.HasIndex(src => new { src.Department, src.MasterId, src.ProductTypeId, src.Status }).IsUnique();
+
+    builder.HasOne(obj => obj.Origin)
+      .WithMany(obj => obj.Transfers)
+      .HasForeignKey(obj => obj.OriginId)
       .OnDelete(DeleteBehavior.Restrict);
 
-    builder.HasOne(obj => obj.SparePartType)
-      .WithMany(m => m.SpareParts)
-      .HasForeignKey(obj => obj.SparePartId)
+    builder.HasOne(obj => obj.ProductType)
+      .WithMany(m => m.Products)
+      .HasForeignKey(obj => obj.ProductTypeId)
       .OnDelete(DeleteBehavior.Restrict);
 
-    builder.HasOne(obj => obj.AcceptedUser)
+    builder.HasOne(obj => obj.ProductModel)
+      .WithMany(m => m.Products)
+      .HasForeignKey(obj => obj.ProductModelId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    builder.HasOne(obj => obj.Master)
       .WithMany()
-      .HasForeignKey(obj => obj.AcceptedUserId)
+      .HasForeignKey(obj => obj.MasterId)
       .OnDelete(DeleteBehavior.Restrict);
 
     builder.HasOne(obj => obj.FromUser)
@@ -41,33 +46,33 @@ public class SparePartDepartmentConfigurations : IEntityTypeConfiguration<SpareP
 
     builder.Property(obj => obj.Id)
       .HasColumnName("id");
-        
+
     builder.Property(obj => obj.OriginId)
       .HasColumnName("origin_id")
       .IsRequired(false);
 
-    builder.Property(obj => obj.AcceptedUserId)
-      .HasColumnName("accepted_user_id")
+    builder.Property(obj => obj.MasterId)
+      .HasColumnName("master_id")
       .IsRequired();
 
     builder.Property(obj => obj.FromUserId)
       .HasColumnName("from_user_id")
-      .IsRequired();
+      .IsRequired(false);
 
     builder.Property(obj => obj.ToUserId)
       .HasColumnName("to_user_id")
-      .IsRequired();
+      .IsRequired(false);
 
     builder.Property(obj => obj.Department)
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(obj => obj.SparePartId)
-      .HasColumnName("spare_part_id")
+    builder.Property(obj => obj.ProductTypeId)
+      .HasColumnName("product_type_id")
       .IsRequired();
 
-    builder.Property(obj => obj.Unit)
-      .HasColumnName("unit")
+    builder.Property(obj => obj.ProductModelId)
+      .HasColumnName("product_model_id")
       .IsRequired();
 
     builder.Property(obj => obj.Quantity)

@@ -8,7 +8,7 @@ using Xunit.Sdk;
 
 namespace FabriqPro.Tests;
 
-public class MaterialTests(ApplicationFactory factory) : IClassFixture<ApplicationFactory>, IAsyncLifetime
+public class MaterialTypeTests(ApplicationFactory factory) : IClassFixture<ApplicationFactory>, IAsyncLifetime
 {
   private readonly HttpClient _client = factory.CreateClient();
 

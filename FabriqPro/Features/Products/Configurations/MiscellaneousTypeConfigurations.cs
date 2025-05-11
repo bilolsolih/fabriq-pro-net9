@@ -1,15 +1,14 @@
-﻿using FabriqPro.Features.Products.Models.Accessory;
-using FabriqPro.Features.Products.Models.SparePart;
+﻿using FabriqPro.Features.Products.Models.Miscellaneous;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FabriqPro.Features.Products.Configurations;
 
-public class AccessoryConfigurations : IEntityTypeConfiguration<AccessoryType>
+public class MiscellaneousTypeConfigurations : IEntityTypeConfiguration<MiscellaneousType>
 {
-  public void Configure(EntityTypeBuilder<AccessoryType> builder)
+  public void Configure(EntityTypeBuilder<MiscellaneousType> builder)
   {
-    builder.ToTable("accessories");
+    builder.ToTable("miscellaneous");
     builder.HasKey(a => a.Id);
 
     builder.HasIndex(a => a.Title)

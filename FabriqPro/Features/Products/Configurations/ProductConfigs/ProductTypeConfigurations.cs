@@ -3,7 +3,7 @@ using FabriqPro.Features.Products.Models.Product;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FabriqPro.Features.Products.Configurations;
+namespace FabriqPro.Features.Products.Configurations.ProductConfigs;
 
 public class ProductTypeConfigurations :IEntityTypeConfiguration<ProductType>
 {

@@ -21,7 +21,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
     var alreadyExists = await context.SparePartTypes.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
-    var newSparePart = new SparePart { Title = payload.Title };
+    var newSparePart = new SparePartType { Title = payload.Title };
     context.SparePartTypes.Add(newSparePart);
     await context.SaveChangesAsync();
     return Ok(payload);
@@ -45,7 +45,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
     var sparePart = await context.SparePartTypes.FindAsync(payload.SparePartId);
     DoesNotExistException.ThrowIfNull(sparePart, "Omborga mavjud bo'lmagan turdagi 'Ehtiyot qism' qo'shilmoqda.");
 
-    var sparePartDepartment = new SparePartDepartment
+    var sparePartDepartment = new SparePart
     {
       Department = Department.Storage,
       FromUserId = payload.FromUserId,
@@ -80,7 +80,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
     var allSpareParts = await context.SpareParts
       .Include(sp => sp.AcceptedUser)
       .Include(sp => sp.FromUser)
-      .Include(sp => sp.SparePart)
+      .Include(sp => sp.SparePartType)
       .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage)
       .ProjectTo<SparePartListDto>(mapper.ConfigurationProvider)
       .ToListAsync();

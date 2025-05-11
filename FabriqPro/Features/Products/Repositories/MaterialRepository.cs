@@ -6,22 +6,22 @@ namespace FabriqPro.Features.Products.Repositories;
 
 public class MaterialRepository(FabriqDbContext context)
 {
-  public async Task<Material> AddAsync(Material material)
+  public async Task<MaterialType> AddAsync(MaterialType materialType)
   {
-    context.MaterialTypes.Add(material);
+    context.MaterialTypes.Add(materialType);
     await context.SaveChangesAsync();
-    return material;
+    return materialType;
   }
 
-  public async Task<Material> UpdateAsync(Material material)
+  public async Task<MaterialType> UpdateAsync(MaterialType materialType)
   {
-    material.Updated = DateTime.UtcNow;
-    context.MaterialTypes.Update(material);
+    materialType.Updated = DateTime.UtcNow;
+    context.MaterialTypes.Update(materialType);
     await context.SaveChangesAsync();
-    return material;
+    return materialType;
   }
 
-  public async Task<Material?> GetByIdAsync(int materialId)
+  public async Task<MaterialType?> GetByIdAsync(int materialId)
   {
     return await context.MaterialTypes
       // .Include(model => model.ProductType)
@@ -29,7 +29,7 @@ public class MaterialRepository(FabriqDbContext context)
       .SingleOrDefaultAsync();
   }
   
-  public async Task<IEnumerable<Material>> GetAllAsync()
+  public async Task<IEnumerable<MaterialType>> GetAllAsync()
   {
     return await context.MaterialTypes
       // .Include(model => model.ProductType)
@@ -42,9 +42,9 @@ public class MaterialRepository(FabriqDbContext context)
   }
   
 
-  public async Task DeleteAsync(Material material)
+  public async Task DeleteAsync(MaterialType materialType)
   {
-    context.MaterialTypes.Remove(material);
+    context.MaterialTypes.Remove(materialType);
     await context.SaveChangesAsync();
   }
 }

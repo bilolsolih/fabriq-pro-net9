@@ -6,6 +6,7 @@ using FabriqPro.Features.Authentication.Models;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Material;
+using FabriqPro.Features.Products.Models.ProductPart;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -135,8 +136,8 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       return BadRequest("Faqat Kesish Masteriga o'tkazib berish mumkin.");
     }
 
-    var source = await context.Materials.FindAsync(payload.MaterialToDepartmentId);
-    DoesNotExistException.ThrowIfNull(source, $"materialToDepartmentId: {payload.MaterialToDepartmentId}");
+    var source = await context.Materials.FindAsync(payload.MaterialId);
+    DoesNotExistException.ThrowIfNull(source, $"materialToDepartmentId: {payload.MaterialId}");
 
     if (payload.Quantity > source.Quantity)
     {
@@ -257,5 +258,55 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
 
     await context.SaveChangesAsync();
     return Ok();
+  }
+
+  [HttpPost("cut-materials-into-parts"), Authorize(Policy = "CuttingMasterOrSuperAdmin")]
+  public async Task<ActionResult<CuttingMaterialDto>> CutMaterialsIntoParts(CuttingMaterialDto payload)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
+
+    foreach (var materialUsed in payload.MaterialsUsed)
+    {
+      var material = await context.Materials.FindAsync(materialUsed.MaterialId);
+      DoesNotExistException.ThrowIfNull(material, "Bunday material mavjud emas.");
+      if (materialUsed.Quantity > material.Quantity)
+      {
+        return BadRequest("Ishlatilmoqchi bo'lgan material miqdori mavjud material miqdoridan ko'p.");
+      }
+
+      if (materialUsed.UsedAll)
+      {
+        material.Quantity = 0;
+      }
+      else
+      {
+        material.Quantity -= materialUsed.Quantity;
+      }
+    }
+
+    foreach (var productPartCut in payload.ProductPartsCut)
+    {
+      var productPartType = await context.ProductPartTypes.FindAsync(productPartCut.ProductPartTypeId);
+      DoesNotExistException.ThrowIfNull(productPartType, "Bunday maxsulot qismi mavjud emas.");
+      var productModel = await context.ProductModels.FindAsync(productPartCut.ProductModelId);
+      DoesNotExistException.ThrowIfNull(productModel, "Bunday maxsulot modeli mavjud emas.");
+
+      var newProductPart = new ProductPart
+      {
+        Department = Department.Cutting,
+        MasterId = user.Id,
+        ProductPartTypeId = productPartCut.ProductPartTypeId,
+        ProductModelId = productPartCut.ProductModelId,
+        Quantity = productPartCut.Quantity,
+        Status = ItemStatus.AddedByMaster,
+      };
+
+      context.ProductParts.Add(newProductPart);
+    }
+
+    await context.SaveChangesAsync();
+    return Ok(payload);
   }
 }

@@ -45,6 +45,13 @@ public record ProductsSentToMeListDto
   public required ItemStatus Status { get; set; }
 }
 
+public record GiveProductToMaster
+{
+  public required int ProductId { get; set; }
+  public required int MasterId { get; set; }
+  public required int Quantity { get; set; }
+}
+
 public record ProductListDto
 {
   public required int Id { get; set; }

@@ -23,7 +23,7 @@ public record AddMaterialToStorageDto
 
 public record GiveMaterialToMasterDto
 {
-  public required int MaterialToDepartmentId { get; set; }
+  public required int MaterialId { get; set; }
   public required int CuttingMasterId { get; set; }
   public required double Quantity { get; set; }
 }
@@ -90,4 +90,25 @@ public record MaterialUpdateDto
 {
   public int? MaterialTypeId { get; set; }
   public int? ProductTypeId { get; set; }
+}
+
+public record CuttingMaterialDto
+{
+  public required IList<MaterialsUsedInCuttingDto> MaterialsUsed { get; set; }
+  public required IList<ProductPartsCutDto> ProductPartsCut { get; set; }
+  public required double WasteAmount { get; set; }
+}
+
+public record ProductPartsCutDto
+{
+  public required int ProductPartTypeId { get; set; }
+  public required int ProductModelId { get; set; }
+  public required int Quantity { get; set; }
+}
+
+public record MaterialsUsedInCuttingDto
+{
+  public required int MaterialId { get; set; }
+  public required double Quantity { get; set; }
+  public required bool UsedAll { get; set; }
 }

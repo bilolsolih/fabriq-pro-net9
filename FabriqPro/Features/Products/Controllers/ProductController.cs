@@ -2,6 +2,7 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FabriqPro.Core.Exceptions;
+using FabriqPro.Features.Authentication.Models;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Product;
@@ -14,25 +15,25 @@ namespace FabriqPro.Features.Products.Controllers;
 [ApiController, Route("api/v1/products"), Authorize]
 public class ProductController(FabriqDbContext context, IMapper mapper) : ControllerBase
 {
-  [HttpPost("create-product-type"), Authorize(Policy = "SuperAdmin")]
-  public async Task<ActionResult<ProductTypeCreateDto>> CreateProductType(ProductTypeCreateDto payload)
-  {
-    var userId = int.Parse(User.FindFirstValue("id")!);
-    var user = await context.Users.FindAsync(userId);
-    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qiling va yana urinib ko'ring.");
-
-    var alreadyExists = await context.ProductTypes.AnyAsync(p => p.Title.ToLower() == payload.Title.ToLower());
-    AlreadyExistsException.ThrowIf(alreadyExists, "Bunaqa nomli Maxsulot turi allaqachon mavjud.");
-
-    var newProductType = new ProductType
-    {
-      Title = payload.Title
-    };
-
-    context.ProductTypes.Add(newProductType);
-    await context.SaveChangesAsync();
-    return Ok(payload);
-  }
+  // [HttpPost("create-product-type"), Authorize(Policy = "SuperAdmin")]
+  // public async Task<ActionResult<ProductTypeCreateDto>> CreateProductType(ProductTypeCreateDto payload)
+  // {
+  //   var userId = int.Parse(User.FindFirstValue("id")!);
+  //   var user = await context.Users.FindAsync(userId);
+  //   DoesNotExistException.ThrowIfNull(user, "Qaytadan login qiling va yana urinib ko'ring.");
+  //
+  //   var alreadyExists = await context.ProductTypes.AnyAsync(p => p.Title.ToLower() == payload.Title.ToLower());
+  //   AlreadyExistsException.ThrowIf(alreadyExists, "Bunaqa nomli Maxsulot turi allaqachon mavjud.");
+  //
+  //   var newProductType = new ProductType
+  //   {
+  //     Title = payload.Title
+  //   };
+  //
+  //   context.ProductTypes.Add(newProductType);
+  //   await context.SaveChangesAsync();
+  //   return Ok(payload);
+  // }
 
   [HttpPost("add-product-to-master"), Authorize(Policy = "SewingMasterOrSuperAdmin")]
   public async Task<ActionResult<AddProductToMasterDto>> AddProductToMaster(AddProductToMasterDto payload)
@@ -113,6 +114,52 @@ public class ProductController(FabriqDbContext context, IMapper mapper) : Contro
 
     return Ok(products);
   }
+
+  [HttpPost("give-products-to-master"), Authorize(Policy = "SewingMasterOrSuperAdmin")]
+  public async Task<ActionResult<GiveProductToMaster>> GiveProductToMaster(GiveProductToMaster payload)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var fromUser = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(fromUser, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var toUser = await context.Users.FindAsync(payload.MasterId);
+    DoesNotExistException.ThrowIfNull(toUser, "Maxsulot mavjud bo'lmagan Masterga o'tkazilmoqda.");
+
+    if (toUser.Role != UserRoles.PackagingMaster)
+    {
+      return BadRequest("Faqat Qadoqlash Masteriga o'tkazib berish mumkin.");
+    }
+
+    var source = await context.Products.FindAsync(payload.ProductId);
+    DoesNotExistException.ThrowIfNull(source, "Bunday maxsulot mavjud emas.");
+
+    if (source.MasterId != fromUser.Id)
+    {
+      return Forbid("Sizning nomingizda bo'lmagan maxsulotni o'tkazib bera olmaysiz.");
+    }
+
+    if (payload.Quantity > source.Quantity)
+    {
+      return BadRequest("O'tkazilayapgan maxsulot miqdori qolgan maxsulot miqdoridan ko'p.");
+    }
+
+    var product = source with
+    {
+      OriginId = source.Id,
+      Department = Department.Packaging,
+      FromUserId = fromUser.Id,
+      ToUserId = toUser.Id,
+      Quantity = payload.Quantity,
+      Status = ItemStatus.Pending,
+    };
+
+    source.Quantity -= payload.Quantity;
+
+    context.Products.Add(product);
+    await context.SaveChangesAsync();
+
+    return Ok(payload);
+  }
   
   [HttpGet("list-products-sent-to-me"), Authorize(Policy = "PackagingMasterOrStorageManagerOrSuperAdmin")]
   public async Task<ActionResult<ProductsAddedByMeListDto>> ListProductsSentToMe()
@@ -128,6 +175,4 @@ public class ProductController(FabriqDbContext context, IMapper mapper) : Contro
 
     return Ok(products);
   }
-
-
 }

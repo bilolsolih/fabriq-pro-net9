@@ -26,7 +26,7 @@ public record ProductPart : BaseModelRecord
   public ProductPartType ProductPartType { get; set; }
   
   public required int ProductModelId { get; set; }
-  public required ProductModel ProductModel { get; set; }
+  public ProductModel ProductModel { get; set; }
 
   public required double Quantity { get; set; }
 

@@ -3,7 +3,7 @@ using FabriqPro.Features.Products.Models.Material;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FabriqPro.Features.Products.Configurations;
+namespace FabriqPro.Features.Products.Configurations.MaterialConfigs;
 
 public class MaterialConfigurations : IEntityTypeConfiguration<Material>
 {

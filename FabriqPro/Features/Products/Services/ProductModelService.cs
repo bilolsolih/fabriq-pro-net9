@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using AutoMapper;
 using FabriqPro.Core.Exceptions;
+using FabriqPro.Features.Products.Controllers.Filters;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Product;
@@ -23,15 +24,15 @@ public class ProductModelService(
     return mapper.Map<ProductModelDetailDto>(productModel);
   }
 
-  public async Task<IEnumerable<ProductModelListDto>> GetAllProductModelsAsync()
+  public async Task<IEnumerable<ProductModelListDto>> GetAllProductModelsAsync(ProductModelFilters filters)
   {
-    var productModels = await productModelRepo.GetAllAsync();
+    var productModels = await productModelRepo.GetAllAsync(filters);
     return mapper.Map<IEnumerable<ProductModelListDto>>(productModels);
   }
 
   public async Task<ProductModel> CreateProductModelAsync(ProductModelCreateDto payload)
   {
-    var alreadyExists = await productModelRepo.ExistsByTitleAsync(payload.Title);
+    var alreadyExists = await productModelRepo.ExistsByTitleAsync(payload.Title, payload.ColorId, payload.ProductTypeId);
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
 
     var colorExists = await colorRepo.ExistsByIdAsync(payload.ColorId);

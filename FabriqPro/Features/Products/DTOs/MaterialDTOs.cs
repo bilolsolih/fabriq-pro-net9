@@ -28,6 +28,13 @@ public record GiveMaterialToMasterDto
   public required double Quantity { get; set; }
 }
 
+public record MaterialsListAllDto
+{
+  public required int Id { get; set; }
+  public required string Title { get; set; }
+  public required string Quantity { get; set; }
+}
+
 public record MaterialTypeListDto
 {
   public required int Id { get; set; }

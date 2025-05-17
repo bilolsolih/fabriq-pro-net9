@@ -35,6 +35,17 @@ public class ProductController(FabriqDbContext context, IMapper mapper) : Contro
   //   return Ok(payload);
   // }
 
+  [HttpGet("list-all-products"), Authorize(Policy = "StorageManagerOrSuperAdmin")]
+  public async Task<ActionResult<IEnumerable<ProductListDto>>> ListAllProductsInStorage()
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qiling va yana urinib ko'ring.");
+
+    var products = await context.Products.ProjectTo<ProductListDto>(mapper.ConfigurationProvider).ToListAsync();
+    return Ok(products);
+  }
+
   [HttpPost("add-product-to-master"), Authorize(Policy = "SewingMasterOrSuperAdmin")]
   public async Task<ActionResult<AddProductToMasterDto>> AddProductToMaster(AddProductToMasterDto payload)
   {
@@ -160,7 +171,7 @@ public class ProductController(FabriqDbContext context, IMapper mapper) : Contro
 
     return Ok(payload);
   }
-  
+
   [HttpGet("list-products-sent-to-me"), Authorize(Policy = "PackagingMasterOrStorageManagerOrSuperAdmin")]
   public async Task<ActionResult<ProductsAddedByMeListDto>> ListProductsSentToMe()
   {

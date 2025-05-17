@@ -56,8 +56,10 @@ public record ProductListDto
 {
   public required int Id { get; set; }
   public required string Title { get; set; }
-  public required string ProductModel { get; set; }
-  public required string ProductType { get; set; }
+  public required string Model { get; set; }
+  public required string ColorTitle { get; set; }
+  public required string ColorHex { get; set; }
+  public required int Quantity { get; set; }
 }
 
 public record ProductCreateDto

@@ -6,5 +6,5 @@ public class MaterialType : BaseModel
 {
   public required string Title { get; set; }
 
-  public ICollection<Material> MaterialDepartments { get; set; } = [];
+  public ICollection<Material> Materials { get; set; } = [];
 }

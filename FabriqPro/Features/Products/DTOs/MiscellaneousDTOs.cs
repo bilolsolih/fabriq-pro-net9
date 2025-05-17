@@ -30,6 +30,13 @@ public record MiscellaneousTypeListDto
   public required string Title { get; set; }
 }
 
+public record MiscellaneousListAllDto
+{
+  public required int Id { get; set; }
+  public required string Title { get; set; }
+  public required string Quantity { get; set; }
+}
+
 public record MiscellaneousListDto
 {
   public required int Id { get; set; }

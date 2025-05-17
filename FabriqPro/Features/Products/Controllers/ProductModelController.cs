@@ -1,4 +1,5 @@
-﻿using FabriqPro.Features.Products.DTOs;
+﻿using FabriqPro.Features.Products.Controllers.Filters;
+using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Product;
 using FabriqPro.Features.Products.Services;
@@ -17,9 +18,9 @@ public class ProductModelController(ProductModelService service) : ControllerBas
   }
 
   [HttpGet("list")]
-  public async Task<ActionResult<IEnumerable<ProductModelListDto>>> GetProductModels()
+  public async Task<ActionResult<IEnumerable<ProductModelListDto>>> GetProductModels([FromQuery] ProductModelFilters filters)
   {
-    var productModels = await service.GetAllProductModelsAsync();
+    var productModels = await service.GetAllProductModelsAsync(filters);
     return Ok(productModels);
   }
 

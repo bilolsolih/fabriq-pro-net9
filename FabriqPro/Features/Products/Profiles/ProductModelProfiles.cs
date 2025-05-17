@@ -13,7 +13,8 @@ public class ProductModelProfiles : Profile
       .ForMember(dest => dest.Created, opts => opts.MapFrom(src => src.Created.ToLocalTime()))
       .ForMember(dest => dest.Updated, opts => opts.MapFrom(src => src.Updated.ToLocalTime()));
     CreateMap<ProductModel, ProductModelListDto>()
-      .ForMember(dest => dest.Color, opts => opts.MapFrom(src => src.Color.ColorCode))
+      .ForMember(dest => dest.ColorTitle, opts => opts.MapFrom(src => src.Color.Title))
+      .ForMember(dest => dest.ColorHex, opts => opts.MapFrom(src => src.Color.ColorCode))
       .ForMember(dest => dest.ProductType, opts => opts.MapFrom(src => src.ProductType.Title));
     CreateMap<ProductModelCreateDto, ProductModel>();
     CreateMap<ProductModelUpdateDto, ProductModel>()

@@ -28,12 +28,33 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     return Ok(payload);
   }
 
+  [HttpDelete("delete-material-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> DeleteMaterialType(int id)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var materialType = await context.MaterialTypes.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(materialType, "Bunday material turi mavjud emas.");
+
+    var hasAnyMaterials = await context.Materials.AnyAsync(m => m.MaterialId == materialType.Id);
+    if (hasAnyMaterials)
+    {
+      return BadRequest("Bu material turiga bog'langan materiallar mavjud, o'chirish mumkin emas.");
+    }
+
+    context.MaterialTypes.Remove(materialType);
+    await context.SaveChangesAsync();
+    return NoContent();
+  }
+
   [HttpPost("add-to-storage"), Authorize(Policy = "StorageManagerOrSuperAdmin")]
   public async Task<ActionResult<AddMaterialToStorageDto>> AddToStorage(AddMaterialToStorageDto payload)
   {
     var userId = int.Parse(User.FindFirstValue("id")!);
     var user = await context.Users.FindAsync(userId);
-    DoesNotExistException.ThrowIfNull(user, $"userId: {userId}. Please, login again.");
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
 
     var fromUser = await context.Users.FindAsync(payload.FromUserId);
     DoesNotExistException.ThrowIfNull(fromUser, $"fromUserId: {payload.FromUserId}");
@@ -100,7 +121,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   public async Task<ActionResult<List<MaterialTypeListDto>>> ListAllMaterialTypes()
   {
     var allMaterialTypes = await context.MaterialTypes
-      .Include(mt => mt.MaterialDepartments)
+      .Include(mt => mt.Materials)
       .ProjectTo<MaterialTypeListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
@@ -126,7 +147,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   {
     var userId = int.Parse(User.FindFirstValue("id")!);
     var fromUser = await context.Users.FindAsync(userId);
-    DoesNotExistException.ThrowIfNull(fromUser, $"userId: {userId}. Please, login again.");
+    DoesNotExistException.ThrowIfNull(fromUser, "Qaytadan login qilib yana urinib ko'ring.");
 
     var toUser = await context.Users.FindAsync(payload.CuttingMasterId);
     DoesNotExistException.ThrowIfNull(toUser, $"toUserId: {payload.CuttingMasterId}");
@@ -214,7 +235,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   {
     var userId = int.Parse(User.FindFirstValue("id")!);
     var user = await context.Users.FindAsync(userId);
-    DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
 
     var toUser = await context.Users.FindAsync(payload.ToUserId);
     DoesNotExistException.ThrowIfNull(toUser, "Mavjud bo'lmagan Xodimga material qaytarilyapti.");
@@ -265,7 +286,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   {
     var userId = int.Parse(User.FindFirstValue("id")!);
     var user = await context.Users.FindAsync(userId);
-    DoesNotExistException.ThrowIfNull(user, $"userId: {userId}");
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
 
     foreach (var materialUsed in payload.MaterialsUsed)
     {

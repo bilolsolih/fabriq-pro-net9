@@ -36,7 +36,7 @@ public class MaterialConfigurations : IEntityTypeConfiguration<Material>
       .OnDelete(DeleteBehavior.Restrict);
 
     builder.HasOne(obj => obj.MaterialType)
-      .WithMany(m => m.MaterialDepartments) // for backwards navigation
+      .WithMany(m => m.Materials) // for backwards navigation
       .HasForeignKey(obj => obj.MaterialId);
 
     builder.HasOne(obj => obj.Party)

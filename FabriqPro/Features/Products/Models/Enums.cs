@@ -7,7 +7,8 @@ public enum Department
   Sewing,
   Cleaning,
   Pressing,
-  Packaging
+  Packaging,
+  Suppliers
 }
 
 
@@ -15,7 +16,7 @@ public enum Unit
 {
   Kg,
   Meter,
-  Pack
+  Piece,
 }
 
 public enum ItemStatus

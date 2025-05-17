@@ -16,7 +16,7 @@ public class AuthController(AuthService service, TokenService tokenService) : Co
     var user = await service.GetUserByPhoneNumberAsync(payload.Login);
     if (user == null)
     {
-      return Unauthorized();
+      return Unauthorized("Bunday foydalanuvchi mavjud emas");
     }
 
     if (payload.Password == user.Password)
@@ -25,7 +25,7 @@ public class AuthController(AuthService service, TokenService tokenService) : Co
       return Ok(new { AccessToken = token });
     }
 
-    return Unauthorized();
+    return Unauthorized("Bunday foydalanuvchi mavjud emas");
   }
 
   [HttpPost("create")]

@@ -75,14 +75,12 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
   }
 
   [HttpGet("list-all-miscellaneous")]
-  public async Task<ActionResult<List<MiscellaneousListDto>>> ListAllAccessories()
+  public async Task<ActionResult<List<MiscellaneousListAllDto>>> ListAllAccessories()
   {
     var allAccessories = await context.Miscellaneous
-      .Include(sp => sp.AcceptedUser)
-      .Include(sp => sp.FromUser)
       .Include(sp => sp.MiscellaneousType)
       .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage)
-      .ProjectTo<MiscellaneousListDto>(mapper.ConfigurationProvider)
+      .ProjectTo<MiscellaneousListAllDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
     return Ok(allAccessories);

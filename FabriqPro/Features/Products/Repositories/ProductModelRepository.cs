@@ -1,4 +1,5 @@
-﻿using FabriqPro.Features.Products.Models;
+﻿using FabriqPro.Features.Products.Controllers.Filters;
+using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Product;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,12 +31,24 @@ public class ProductModelRepository(FabriqDbContext context)
       .SingleOrDefaultAsync();
   }
 
-  public async Task<IEnumerable<ProductModel>> GetAllAsync()
+  public async Task<IEnumerable<ProductModel>> GetAllAsync(ProductModelFilters filters)
   {
-    return await context.ProductModels
+    var query = context.ProductModels
       .Include(model => model.Color)
       .Include(model => model.ProductType)
-      .ToListAsync();
+      .AsQueryable();
+
+    if (filters is { ProductTypeId: not null })
+    {
+      query = query.Where(p => p.ProductTypeId == filters.ProductTypeId);
+    }
+
+    if (filters is { Limit: not null, Page: not null })
+    {
+      query = query.Skip((int)((filters.Page - 1) * filters.Limit)).Take((int)filters.Limit);
+    }
+
+    return await query.ToListAsync();
   }
 
   public async Task<bool> ExistsByIdAsync(int id)
@@ -43,12 +56,24 @@ public class ProductModelRepository(FabriqDbContext context)
     return await context.ProductModels.AnyAsync(productModel => productModel.Id == id);
   }
 
-  public async Task<bool> ExistsByTitleAsync(string title, bool caseSensitive = false)
+  public async Task<bool> ExistsByTitleAsync(string title, int? colorId = null, int? productTypeId = null, bool caseSensitive = false)
   {
     if (caseSensitive)
       return await context.ProductModels.AnyAsync(productModel => productModel.Title == title);
 
-    return await context.ProductModels.AnyAsync(productModel => productModel.Title.ToLower() == title.ToLower());
+    var query = context.ProductModels.Where(p => p.Title.ToLower() == title);
+
+    if (colorId != null)
+    {
+      query = query.Where(p => p.ColorId == colorId);
+    }
+
+    if (productTypeId != null)
+    {
+      query = query.Where(p => p.ProductTypeId == productTypeId);
+    }
+
+    return await query.AnyAsync();
   }
 
   public async Task DeleteAsync(ProductModel productModel)

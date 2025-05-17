@@ -10,17 +10,20 @@ public class MaterialProfiles : Profile
   public MaterialProfiles()
   {
     CreateMap<MaterialTypeCreateDto, MaterialType>();
+    CreateMap<Material, MaterialsListAllDto>()
+      .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.MaterialType.Title))
+      .ForMember(dest => dest.Quantity, opts => opts.MapFrom(src => $"{src.Quantity} {GetTitleForUnit(src.Unit)}"));
 
     CreateMap<MaterialType, MaterialTypeListDto>()
       .ForMember(
         dest => dest.TotalInMeter,
-        opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Meter).Sum(md => md.Quantity))
+        opts => opts.MapFrom(src => src.Materials.Where(md => md.Unit == Unit.Meter).Sum(md => md.Quantity))
       ).ForMember(
         dest => dest.TotalInKg,
-        opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Kg).Sum(md => md.Quantity))
+        opts => opts.MapFrom(src => src.Materials.Where(md => md.Unit == Unit.Kg).Sum(md => md.Quantity))
       ).ForMember(
         dest => dest.TotalInPack,
-        opts => opts.MapFrom(src => src.MaterialDepartments.Where(md => md.Unit == Unit.Pack).Sum(md => md.Quantity))
+        opts => opts.MapFrom(src => src.Materials.Where(md => md.Unit == Unit.Piece).Sum(md => md.Quantity))
       );
 
     CreateMap<Material, MaterialListDto>()
@@ -41,5 +44,17 @@ public class MaterialProfiles : Profile
       .ForMember(dest => dest.FromUserRole, opts => opts.MapFrom(src => src.FromUser.Role))
       .ForMember(dest => dest.Color, opts => opts.MapFrom(src => src.Color.ColorCode))
       .ForMember(dest => dest.Date, opts => opts.MapFrom(src => src.Created));
+  }
+
+  public string GetTitleForUnit(Unit unit)
+  {
+    var map = new Dictionary<Unit, string>
+    {
+      { Unit.Piece, "dona" },
+      { Unit.Kg, "kg" },
+      { Unit.Meter, "metr" },
+    };
+
+    return map[unit];
   }
 }

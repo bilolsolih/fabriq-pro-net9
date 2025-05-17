@@ -27,7 +27,7 @@ public class ColorConfigurations : IEntityTypeConfiguration<Color>
             .HasColumnName("title");
 
         builder.Property(color => color.ColorCode)
-            .HasMaxLength(9)
+            .HasMaxLength(10)
             .IsRequired()
             .HasColumnName("color_code");
 

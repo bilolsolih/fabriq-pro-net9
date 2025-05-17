@@ -21,7 +21,7 @@ public record Accessory : BaseModelRecord
   public required int ToUserId { get; set; }
   public User ToUser { get; set; }
 
-  public required int AccessoryId { get; set; }
+  public required int AccessoryTypeId { get; set; }
   public AccessoryType AccessoryType { get; set; }
 
   public required double Quantity { get; set; }

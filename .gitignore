@@ -4,7 +4,7 @@
 .vscode/
 .vs/
 *.code-workspace
-Migrations
+#Migrations
 *.nupkg
 packages/
 

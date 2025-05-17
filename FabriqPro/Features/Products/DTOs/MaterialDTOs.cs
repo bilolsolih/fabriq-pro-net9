@@ -3,7 +3,7 @@ using FabriqPro.Features.Products.Models;
 
 namespace FabriqPro.Features.Products.DTOs;
 
-public record MaterialTypeCreateDto
+public record MaterialTypeCreateUpdateDto
 {
   public required string Title { get; set; }
 }

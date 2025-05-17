@@ -11,7 +11,7 @@ public class AccessoryDepartmentConfigurations : IEntityTypeConfiguration<Access
     builder.ToTable("accessory_department");
     builder.HasKey(src => src.Id);
 
-    builder.HasIndex(sd => new { sd.Department, sd.ToUserId, sd.AccessoryId, sd.Status }).IsUnique();
+    builder.HasIndex(sd => new { sd.Department, sd.ToUserId, AccessoryId = sd.AccessoryTypeId, sd.Status }).IsUnique();
 
     builder.HasOne(obj => obj.Origin)
       .WithMany(obj => obj.Transfers)
@@ -20,7 +20,7 @@ public class AccessoryDepartmentConfigurations : IEntityTypeConfiguration<Access
 
     builder.HasOne(obj => obj.AccessoryType)
       .WithMany(m => m.AccessoryDepartments)
-      .HasForeignKey(obj => obj.AccessoryId)
+      .HasForeignKey(obj => obj.AccessoryTypeId)
       .OnDelete(DeleteBehavior.Restrict);
 
     builder.HasOne(obj => obj.AcceptedUser)
@@ -61,7 +61,7 @@ public class AccessoryDepartmentConfigurations : IEntityTypeConfiguration<Access
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(obj => obj.AccessoryId)
+    builder.Property(obj => obj.AccessoryTypeId)
       .HasColumnName("accessory_id")
       .IsRequired();
 

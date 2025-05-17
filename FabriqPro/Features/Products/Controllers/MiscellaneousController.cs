@@ -16,7 +16,7 @@ namespace FabriqPro.Features.Products.Controllers;
 public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : ControllerBase
 {
   [HttpPost("create-new-miscellaneous-type"), Authorize(Policy = "SuperAdmin")]
-  public async Task<ActionResult<MiscellaneousCreateDto>> CreateMiscellaneous(MiscellaneousCreateDto payload)
+  public async Task<ActionResult<MiscellaneousCreateUpdateDto>> CreateMiscellaneous(MiscellaneousCreateUpdateDto payload)
   {
     var alreadyExists = await context.MiscellaneousTypes.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
@@ -26,7 +26,44 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
     await context.SaveChangesAsync();
     return Ok(payload);
   }
+  
+  [HttpPatch("update-miscellaneous-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult<MiscellaneousCreateUpdateDto>> UpdateAccessory(int id, MiscellaneousCreateUpdateDto payload)
+  {
+    var miscellaneousType = await context.MiscellaneousTypes.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(miscellaneousType, "O'zgartirmoqchi bo'lingan narsa turi mavjud emas.");
+    
+    var alreadyExists = await context.MiscellaneousTypes.AnyAsync(m => m.Title.ToLower() == payload.Title.ToLower() && m.Id != id);
+    AlreadyExistsException.ThrowIf(alreadyExists, "Bunday nom bilan boshqa narsa mavjud. Boshqa nom tanlang.");
 
+    miscellaneousType.Title = payload.Title;
+    context.MiscellaneousTypes.Update(miscellaneousType);
+    
+    await context.SaveChangesAsync();
+    return Ok(payload);
+  }
+  
+  [HttpDelete("delete-miscellaneous-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> DeleteMiscellaneousType(int id)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var miscellaneousType = await context.MiscellaneousTypes.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(miscellaneousType, "Bunday narsa mavjud emas.");
+
+    var hasAnyMiscellaneous = await context.Miscellaneous.AnyAsync(m => m.MiscellaneousTypeId == miscellaneousType.Id);
+    if (hasAnyMiscellaneous)
+    {
+      return BadRequest("Bu narsa turiga bog'langan narsalar mavjud, o'chirish mumkin emas.");
+    }
+
+    context.MiscellaneousTypes.Remove(miscellaneousType);
+    await context.SaveChangesAsync();
+    return NoContent();
+  }
+  
   [HttpPost("accept-miscellaneous-to-storage"), Authorize(Policy = "StorageManagerOrSuperAdmin")]
   public async Task<ActionResult<AddMiscellaneousToStorageDto>> AddToStorage(AddMiscellaneousToStorageDto payload)
   {

@@ -3,7 +3,7 @@ using FabriqPro.Features.Products.Models;
 
 namespace FabriqPro.Features.Products.DTOs;
 
-public record MiscellaneousCreateDto
+public record MiscellaneousCreateUpdateDto
 {
   public required string Title { get; set; }
 }

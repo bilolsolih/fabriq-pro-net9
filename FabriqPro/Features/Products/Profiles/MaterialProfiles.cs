@@ -9,7 +9,7 @@ public class MaterialProfiles : Profile
 {
   public MaterialProfiles()
   {
-    CreateMap<MaterialTypeCreateDto, MaterialType>();
+    CreateMap<MaterialTypeCreateUpdateDto, MaterialType>();
     CreateMap<Material, MaterialsListAllDto>()
       .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.MaterialType.Title))
       .ForMember(dest => dest.Quantity, opts => opts.MapFrom(src => $"{src.Quantity} {GetTitleForUnit(src.Unit)}"));

@@ -16,7 +16,7 @@ namespace FabriqPro.Features.Products.Controllers;
 public class AccessoryController(FabriqDbContext context, IMapper mapper) : ControllerBase
 {
   [HttpPost("create-new-accessory-type"), Authorize(Policy = "SuperAdmin")]
-  public async Task<ActionResult<AccessoryCreateDto>> CreateAccessory(AccessoryCreateDto payload)
+  public async Task<ActionResult<AccessoryCreateUpdateDto>> CreateAccessory(AccessoryCreateUpdateDto payload)
   {
     var alreadyExists = await context.AccessoryTypes.AnyAsync(sp => sp.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
@@ -25,6 +25,43 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     context.AccessoryTypes.Add(newAccessory);
     await context.SaveChangesAsync();
     return Ok(payload);
+  }
+  
+  [HttpPatch("update-accessory-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult<AccessoryCreateUpdateDto>> UpdateAccessory(int id, AccessoryCreateUpdateDto payload)
+  {
+    var accessoryType = await context.AccessoryTypes.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(accessoryType, "O'zgartirmoqchi bo'lingan aksessuar turi mavjud emas.");
+    
+    var alreadyExists = await context.AccessoryTypes.AnyAsync(a => a.Title.ToLower() == payload.Title.ToLower() && a.Id != id);
+    AlreadyExistsException.ThrowIf(alreadyExists, "Bunday nom bilan boshqa aksessuar mavjud. Boshqa nom tanlang.");
+
+    accessoryType.Title = payload.Title;
+    context.AccessoryTypes.Update(accessoryType);
+    
+    await context.SaveChangesAsync();
+    return Ok(payload);
+  }
+  
+  [HttpDelete("delete-accessory-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> DeleteAccessoryType(int id)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var accessoryType = await context.AccessoryTypes.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(accessoryType, "Bunday aksessuar mavjud emas.");
+
+    var hasAnyAccessories = await context.Accessories.AnyAsync(m => m.AccessoryTypeId == accessoryType.Id);
+    if (hasAnyAccessories)
+    {
+      return BadRequest("Bu aksessuar turiga bog'langan aksessuarlar mavjud, o'chirish mumkin emas.");
+    }
+
+    context.AccessoryTypes.Remove(accessoryType);
+    await context.SaveChangesAsync();
+    return NoContent();
   }
 
   [HttpPost("accept-accessory-to-storage"), Authorize(Policy = "StorageManagerOrSuperAdmin")]
@@ -51,7 +88,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
       FromUserId = payload.FromUserId,
       AcceptedUserId = user.Id,
       ToUserId = user.Id,
-      AccessoryId = accessory.Id,
+      AccessoryTypeId = accessory.Id,
       Quantity = payload.Quantity,
       Unit = payload.Unit,
       Status = ItemStatus.AcceptedToStorage,

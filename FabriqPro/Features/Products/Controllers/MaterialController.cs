@@ -17,7 +17,7 @@ namespace FabriqPro.Features.Products.Controllers;
 public class MaterialController(FabriqDbContext context, IMapper mapper) : ControllerBase
 {
   [HttpPost("create-new-material-type"), Authorize(Policy = "SuperAdmin")]
-  public async Task<ActionResult<MaterialTypeCreateDto>> CreateMaterial(MaterialTypeCreateDto payload)
+  public async Task<ActionResult<MaterialTypeCreateUpdateDto>> CreateMaterial(MaterialTypeCreateUpdateDto payload)
   {
     var alreadyExists = await context.MaterialTypes.AnyAsync(m => m.Title.ToLower() == payload.Title.ToLower());
     AlreadyExistsException.ThrowIf(alreadyExists, payload.ToString());
@@ -28,6 +28,22 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     return Ok(payload);
   }
 
+  [HttpPatch("update-material-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult<MaterialTypeCreateUpdateDto>> UpdateMaterial(int id, MaterialTypeCreateUpdateDto payload)
+  {
+    var materialType = await context.MaterialTypes.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(materialType, "O'zgartirmoqchi bo'lingan material turi mavjud emas.");
+    
+    var alreadyExists = await context.MaterialTypes.AnyAsync(m => m.Title.ToLower() == payload.Title.ToLower() && m.Id != id);
+    AlreadyExistsException.ThrowIf(alreadyExists, "Bunday nom bilan boshqa metarial mavjud. Boshqa nom tanlang.");
+
+    materialType.Title = payload.Title;
+    context.MaterialTypes.Update(materialType);
+    
+    await context.SaveChangesAsync();
+    return Ok(payload);
+  }
+  
   [HttpDelete("delete-material-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
   public async Task<ActionResult> DeleteMaterialType(int id)
   {

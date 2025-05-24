@@ -3,7 +3,7 @@ using FabriqPro.Features.Products.Models;
 
 namespace FabriqPro.Features.Products.DTOs;
 
-public record SparePartCreateDto
+public record SparePartCreateUpdateDto
 {
   public required string Title { get; set; }
 }
@@ -25,6 +25,13 @@ public record GiveSparePartToMasterDto
 }
 
 public record SparePartTypeListDto
+{
+  public required int Id { get; set; }
+  public required string Title { get; set; }
+  public required double Quantity { get; set; }
+}
+
+public record SparePartTypeEntryListDto
 {
   public required int Id { get; set; }
   public required string Title { get; set; }

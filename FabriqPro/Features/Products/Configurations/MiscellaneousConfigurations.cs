@@ -11,7 +11,7 @@ public class MiscellaneousConfigurations : IEntityTypeConfiguration<Miscellaneou
     builder.ToTable("miscellaneous_department");
     builder.HasKey(src => src.Id);
 
-    builder.HasIndex(sd => new { sd.Department, sd.ToUserId, MiscellaneousId = sd.MiscellaneousTypeId, sd.Status }).IsUnique();
+    // builder.HasIndex(sd => new { sd.Department, sd.ToUserId, MiscellaneousId = sd.MiscellaneousTypeId, sd.Status }).IsUnique();
 
     builder.HasOne(obj => obj.Origin)
       .WithMany(obj => obj.Transfers)

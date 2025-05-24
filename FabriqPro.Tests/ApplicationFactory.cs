@@ -72,7 +72,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         AcceptedUserId = 1,
         ToUserId = 1,
         FromUserId = 2,
-        MaterialId = 1,
+        MaterialTypeId = 1,
         ColorId = 1,
         PartyId = 1,
         Unit = Unit.Kg,
@@ -81,6 +81,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         HasPatterns = true,
         Thickness = 100,
         Width = 100,
+        Date = DateTime.UtcNow,
       },
       new()
       {
@@ -88,7 +89,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         AcceptedUserId = 2,
         ToUserId = 2,
         FromUserId = 1,
-        MaterialId = 1,
+        MaterialTypeId = 1,
         ColorId = 2,
         PartyId = 2,
         Unit = Unit.Kg,
@@ -97,6 +98,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         HasPatterns = false,
         Thickness = 100,
         Width = 100,
+        Date = DateTime.UtcNow,
       },
       new()
       {
@@ -104,7 +106,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         AcceptedUserId = 1,
         ToUserId = 1,
         FromUserId = 2,
-        MaterialId = 2,
+        MaterialTypeId = 2,
         ColorId = 1,
         PartyId = 3,
         Unit = Unit.Meter,
@@ -113,6 +115,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         HasPatterns = true,
         Thickness = 100,
         Width = 100,
+        Date = DateTime.UtcNow,
       },
       new()
       {
@@ -120,7 +123,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         AcceptedUserId = 2,
         ToUserId = 2,
         FromUserId = 1,
-        MaterialId = 2,
+        MaterialTypeId = 2,
         ColorId = 2,
         PartyId = 4,
         Unit = Unit.Meter,
@@ -129,6 +132,7 @@ public class ApplicationFactory : WebApplicationFactory<Program>
         HasPatterns = false,
         Thickness = 100,
         Width = 100,
+        Date = DateTime.UtcNow,
       },
     ];
     context.Materials.AddRange(materialDepartments);

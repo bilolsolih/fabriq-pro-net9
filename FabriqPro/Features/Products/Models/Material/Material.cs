@@ -12,7 +12,7 @@ public record Material : BaseModelRecord
   
   public required Department Department { get; set; }
 
-  public required int MaterialId { get; set; }
+  public required int MaterialTypeId { get; set; }
   public MaterialType MaterialType { get; set; }
 
   public required int AcceptedUserId { get; set; }
@@ -38,4 +38,6 @@ public record Material : BaseModelRecord
   public required Unit Unit { get; set; }
 
   public required ItemStatus Status { get; set; }
+  
+  public required DateTime Date { get; set; }
 }

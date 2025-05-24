@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FabriqPro.Features.Authentication.Controllers;
 
-[ApiController, Route("api/v1/users")]
+[ApiController, Route("api/v1/users"), Authorize]
 public class AuthController(AuthService service, TokenService tokenService) : ControllerBase
 {
   [HttpPost("login"), AllowAnonymous]

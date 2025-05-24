@@ -12,7 +12,7 @@ public record SparePart : BaseModelRecord
 
   public ICollection<SparePart> Transfers { get; set; } = [];
 
-  public required int SparePartId { get; set; }
+  public required int SparePartTypeId { get; set; }
   public SparePartType SparePartType { get; set; }
 
   public required int AcceptedUserId { get; set; }

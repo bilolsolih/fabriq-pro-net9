@@ -28,6 +28,14 @@ public record AccessoryTypeListDto
 {
   public required int Id { get; set; }
   public required string Title { get; set; }
+  public required double Quantity { get; set; }
+  // public required string Unit { get; set; }
+}
+
+public record AccessoryTypeEntryListDto
+{
+  public required int Id { get; set; }
+  public required string Title { get; set; }
 }
 
 public record AccessoryListDto

@@ -1,5 +1,4 @@
-﻿using FabriqPro.Features.Products.Models;
-using FabriqPro.Features.Products.Models.Product;
+﻿using FabriqPro.Features.Products.Models.Product;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

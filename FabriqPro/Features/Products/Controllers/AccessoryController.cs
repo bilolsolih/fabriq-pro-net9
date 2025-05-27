@@ -101,7 +101,68 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     return Ok(payload);
   }
+  
+  [HttpPatch("update-accessory/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> UpdateAccessory(int id, AccessoryUpdateDto payload)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
 
+    var accessory = await context.Accessories.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(accessory, "Bunday aksessuar mavjud emas.");
+
+    if (payload is { FromUserId: not null } && payload.FromUserId != accessory.FromUserId)
+    {
+      var fromUser = await context.Users.FindAsync(payload.FromUserId);
+      DoesNotExistException.ThrowIfNull(fromUser, "Bunday foydalanuvchi mavjud emas.");
+
+      if (fromUser.Role != UserRoles.Supplier)
+      {
+        return Forbid("Faqat yetkazib beruvchi tanlanishi mumkin.");
+      }
+
+      accessory.FromUserId = (int)payload.FromUserId;
+    }
+
+    if (payload is { AccessoryTypeId: not null } && payload.AccessoryTypeId != accessory.AccessoryTypeId)
+    {
+      var sparePartType = await context.AccessoryTypes.FindAsync(payload.AccessoryTypeId);
+      DoesNotExistException.ThrowIfNull(sparePartType, "Bunday ehtiyot qism turi mavjud emas.");
+
+      accessory.AccessoryTypeId = (int)payload.AccessoryTypeId;
+    }
+
+    if (payload is { Quantity: not null } && !(Math.Abs(accessory.Quantity - (double)payload.Quantity) < 1e-10))
+    {
+      accessory.Quantity = (double)payload.Quantity;
+    }
+
+    if (payload is { Unit: not null } && accessory.Unit != payload.Unit)
+    {
+      accessory.Unit = (Unit)payload.Unit;
+    }
+
+    context.Accessories.Update(accessory);
+    await context.SaveChangesAsync();
+    return Ok();
+  }
+
+  [HttpDelete("delete-accessory/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> DeleteAccessory(int id)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var accessory = await context.Accessories.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(accessory, "Bunday aksessuar mavjud emas.");
+
+    context.Accessories.Remove(accessory);
+    await context.SaveChangesAsync();
+    return NoContent();
+  }
+  
   [HttpGet("list-all-accessory-types")]
   public async Task<ActionResult<List<AccessoryTypeListDto>>> ListAllAccessoryTypes()
   {
@@ -112,10 +173,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     return Ok(allAccessories);
   }
-
-  /*
-  AccessoryType larni o'zini olib Front cachelab olishi uchun
-   */
+  
   [HttpGet("list-all-accessory-entries")]
   public async Task<ActionResult<List<AccessoryTypeEntryListDto>>> ListAllAccessoryEntries()
   {

@@ -7,6 +7,13 @@ public record MiscellaneousCreateUpdateDto
 {
   public required string Title { get; set; }
 }
+public record MiscellaneousUpdateDto
+{
+  public int? FromUserId { get; set; }
+  public int? MiscellaneousTypeId { get; set; }
+  public double? Quantity { get; set; }
+  public Unit? Unit { get; set; }
+}
 
 public record AddMiscellaneousToStorageDto
 {
@@ -28,13 +35,20 @@ public record MiscellaneousTypeListDto
 {
   public required int Id { get; set; }
   public required string Title { get; set; }
+  public required double Quantity { get; set; }
+}
+
+public record MiscellaneousTypeEntryListDto
+{
+  public required int Id { get; set; }
+  public required string Title { get; set; }
 }
 
 public record MiscellaneousListAllDto
 {
   public required int Id { get; set; }
   public required string Title { get; set; }
-  public required string Quantity { get; set; }
+  public required double Quantity { get; set; }
 }
 
 public record MiscellaneousListDto

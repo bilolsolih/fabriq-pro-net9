@@ -28,8 +28,69 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
     return Ok(payload);
   }
 
+  [HttpPatch("update-spare-part/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> UpdateSparePart(int id, SparePartUpdateDto payload)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var sparePart = await context.SpareParts.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(sparePart, "Bunday ehtiyot qism mavjud emas.");
+
+    if (payload is { FromUserId: not null } && payload.FromUserId != sparePart.FromUserId)
+    {
+      var fromUser = await context.Users.FindAsync(payload.FromUserId);
+      DoesNotExistException.ThrowIfNull(fromUser, "Bunday foydalanuvchi mavjud emas.");
+
+      if (fromUser.Role != UserRoles.Supplier)
+      {
+        return Forbid("Faqat yetkazib beruvchi tanlanishi mumkin.");
+      }
+
+      sparePart.FromUserId = (int)payload.FromUserId;
+    }
+
+    if (payload is { SparePartTypeId: not null } && payload.SparePartTypeId != sparePart.SparePartTypeId)
+    {
+      var sparePartType = await context.SparePartTypes.FindAsync(payload.SparePartTypeId);
+      DoesNotExistException.ThrowIfNull(sparePartType, "Bunday ehtiyot qism turi mavjud emas.");
+
+      sparePart.SparePartTypeId = (int)payload.SparePartTypeId;
+    }
+
+    if (payload is { Quantity: not null } && !(Math.Abs(sparePart.Quantity - (double)payload.Quantity) < 1e-10))
+    {
+      sparePart.Quantity = (double)payload.Quantity;
+    }
+
+    if (payload is { Unit: not null } && sparePart.Unit != payload.Unit)
+    {
+      sparePart.Unit = (Unit)payload.Unit;
+    }
+
+    context.SpareParts.Update(sparePart);
+    await context.SaveChangesAsync();
+    return Ok();
+  }
+  
+  [HttpDelete("delete-spare-part/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> DeleteSparePart(int id)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var sparePart = await context.SpareParts.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(sparePart, "Bunday ehtiyot qism mavjud emas.");
+
+    context.SpareParts.Remove(sparePart);
+    await context.SaveChangesAsync();
+    return NoContent();
+  }
+
   [HttpPatch("update-spare-part-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
-  public async Task<ActionResult<SparePartCreateUpdateDto>> UpdateSparePart(int id, SparePartCreateUpdateDto payload)
+  public async Task<ActionResult<SparePartCreateUpdateDto>> UpdateSparePartType(int id, SparePartCreateUpdateDto payload)
   {
     var sparePartType = await context.SparePartTypes.FindAsync(id);
     DoesNotExistException.ThrowIfNull(sparePartType, "O'zgartirmoqchi bo'lingan ehtiyot qism turi mavjud emas.");
@@ -80,7 +141,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
       return Forbid("Ehtiyot qism faqat yetkazib beruvchidan qabul qilib olinishi mumkin.");
     }
 
-    var sparePart = await context.SparePartTypes.FindAsync(payload.SparePartId);
+    var sparePart = await context.SparePartTypes.FindAsync(payload.SparePartTypeId);
     DoesNotExistException.ThrowIfNull(sparePart, "Omborga mavjud bo'lmagan turdagi 'Ehtiyot qism' qo'shilmoqda.");
 
     var sparePartDepartment = new SparePart
@@ -111,7 +172,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
 
     return Ok(allSpareParts);
   }
-  
+
   [HttpGet("list-all-spare-part-entries")]
   public async Task<ActionResult<List<SparePartTypeEntryListDto>>> ListAllSparePartEntries()
   {
@@ -121,7 +182,7 @@ public class SparePartController(FabriqDbContext context, IMapper mapper) : Cont
 
     return Ok(allSparePartEntries);
   }
-  
+
   [HttpGet("list-all-spare-parts")]
   public async Task<ActionResult<List<SparePartListDto>>> ListAllSpareParts([FromQuery] SparePartFilters filters)
   {

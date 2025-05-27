@@ -12,8 +12,8 @@ public class MaterialConfigurations : IEntityTypeConfiguration<Material>
     builder.ToTable("material_to_department");
     builder.HasKey(m => m.Id);
 
-    builder.HasIndex(obj => new { obj.Department, obj.ToUserId, obj.MaterialId, obj.PartyId, obj.Status })
-      .IsUnique();
+    // builder.HasIndex(obj => new { obj.Department, obj.ToUserId, MaterialId = obj.MaterialTypeId, obj.PartyId, obj.Status })
+    //   .IsUnique();
 
     builder.HasOne(obj => obj.Origin)
       .WithMany(obj => obj.Transfers)
@@ -37,7 +37,7 @@ public class MaterialConfigurations : IEntityTypeConfiguration<Material>
 
     builder.HasOne(obj => obj.MaterialType)
       .WithMany(m => m.Materials) // for backwards navigation
-      .HasForeignKey(obj => obj.MaterialId);
+      .HasForeignKey(obj => obj.MaterialTypeId);
 
     builder.HasOne(obj => obj.Party)
       .WithMany()
@@ -71,7 +71,7 @@ public class MaterialConfigurations : IEntityTypeConfiguration<Material>
       .HasColumnName("department")
       .IsRequired();
 
-    builder.Property(obj => obj.MaterialId)
+    builder.Property(obj => obj.MaterialTypeId)
       .HasColumnName("material_id")
       .IsRequired();
 
@@ -103,6 +103,12 @@ public class MaterialConfigurations : IEntityTypeConfiguration<Material>
     builder.Property(obj => obj.Quantity)
       .HasColumnName("quantity")
       .IsRequired();
+    
+    builder.Property(obj => obj.Date)
+      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+      .ValueGeneratedOnAdd()
+      .IsRequired()
+      .HasColumnName("date");
 
     builder.Property(obj => obj.Created)
       .HasDefaultValueSql("CURRENT_TIMESTAMP")

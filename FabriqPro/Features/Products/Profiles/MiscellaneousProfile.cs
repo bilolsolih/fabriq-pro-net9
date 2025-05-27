@@ -9,10 +9,11 @@ public class MiscellaneousProfile : Profile
 {
   public MiscellaneousProfile()
   {
-    CreateMap<MiscellaneousType, MiscellaneousTypeListDto>();
+    CreateMap<MiscellaneousType, MiscellaneousTypeEntryListDto>();
+    CreateMap<MiscellaneousType, MiscellaneousTypeListDto>()
+      .ForMember(dest => dest.Quantity, opts => opts.MapFrom(src => src.Miscellaneous.Sum(a => a.Quantity)));
     CreateMap<Miscellaneous, MiscellaneousListAllDto>()
-      .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.MiscellaneousType.Title))
-      .ForMember(dest => dest.Quantity, opts => opts.MapFrom(src => $"{src.Quantity} {GetTitleForUnit(src.Unit)}"));
+      .ForMember(dest => dest.Title, opts => opts.MapFrom(src => src.MiscellaneousType.Title));
     
     CreateMap<Miscellaneous, MiscellaneousListDto>()
       .ForMember(dest => dest.FromUser, opts => opts.MapFrom(src => $"{src.FromUser.FirstName} {src.FromUser.LastName}"))

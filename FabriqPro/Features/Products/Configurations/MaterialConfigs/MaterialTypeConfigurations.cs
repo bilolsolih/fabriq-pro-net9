@@ -2,12 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FabriqPro.Features.Products.Configurations;
+namespace FabriqPro.Features.Products.Configurations.MaterialConfigs;
 
 public class MaterialTypeConfigurations : IEntityTypeConfiguration<MaterialType>
 {
   public void Configure(EntityTypeBuilder<MaterialType> builder)
   {
+    // TODO: qachondir material_types ga o'zgartirib, material_to_departmentni materials qilib qo'yish kerak
     builder.ToTable("materials");
     builder.HasKey(m => m.Id);
 

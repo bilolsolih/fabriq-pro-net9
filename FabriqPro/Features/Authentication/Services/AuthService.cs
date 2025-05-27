@@ -15,7 +15,6 @@ public class AuthService(
   IHttpContextAccessor httpContextAccessor
 )
 {
-  
   public async Task<User> CreateUserAsync(UserCreateDto payload)
   {
     var user = mapper.Map<User>(payload);

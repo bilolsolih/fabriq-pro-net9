@@ -16,6 +16,14 @@ public record AddAccessoryToStorageDto
   public required Unit Unit { get; set; }
 }
 
+public record AccessoryUpdateDto
+{
+  public int? FromUserId { get; set; }
+  public int? AccessoryTypeId { get; set; }
+  public double? Quantity { get; set; }
+  public Unit? Unit { get; set; }
+}
+
 public record GiveAccessoryToMasterDto
 {
   public required int AccessoryToDepartmentId { get; set; }
@@ -25,6 +33,14 @@ public record GiveAccessoryToMasterDto
 }
 
 public record AccessoryTypeListDto
+{
+  public required int Id { get; set; }
+  public required string Title { get; set; }
+  public required double Quantity { get; set; }
+  // public required string Unit { get; set; }
+}
+
+public record AccessoryTypeEntryListDto
 {
   public required int Id { get; set; }
   public required string Title { get; set; }

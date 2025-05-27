@@ -64,11 +64,11 @@ public class FabriqDbContext(DbContextOptions<FabriqDbContext> options) : DbCont
     builder.ApplyConfiguration(new PartyConfigurations());
     builder.ApplyConfiguration(new CuttingConfigurations());
 
+    builder.ApplyConfiguration(new AccessoryTypeConfigurations());
     builder.ApplyConfiguration(new AccessoryConfigurations());
-    builder.ApplyConfiguration(new AccessoryDepartmentConfigurations());
 
+    builder.ApplyConfiguration(new SparePartTypeConfigurations());
     builder.ApplyConfiguration(new SparePartConfigurations());
-    builder.ApplyConfiguration(new SparePartDepartmentConfigurations());
 
     builder.ApplyConfiguration(new MiscellaneousTypeConfigurations());
     builder.ApplyConfiguration(new MiscellaneousConfigurations());

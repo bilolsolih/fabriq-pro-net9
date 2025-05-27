@@ -3,6 +3,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FabriqPro.Core.Exceptions;
 using FabriqPro.Features.Authentication.Models;
+using FabriqPro.Features.Products.Controllers.Filters;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Miscellaneous;
@@ -27,8 +28,69 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
     return Ok(payload);
   }
   
+  [HttpPatch("update-miscellaneous/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> UpdateMiscellaneous(int id, MiscellaneousUpdateDto payload)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var miscellaneous = await context.Miscellaneous.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(miscellaneous, "Bunday ehtiyot qism mavjud emas.");
+
+    if (payload is { FromUserId: not null } && payload.FromUserId != miscellaneous.FromUserId)
+    {
+      var fromUser = await context.Users.FindAsync(payload.FromUserId);
+      DoesNotExistException.ThrowIfNull(fromUser, "Bunday foydalanuvchi mavjud emas.");
+
+      if (fromUser.Role != UserRoles.Supplier)
+      {
+        return Forbid("Faqat yetkazib beruvchi tanlanishi mumkin.");
+      }
+
+      miscellaneous.FromUserId = (int)payload.FromUserId;
+    }
+
+    if (payload is { MiscellaneousTypeId: not null } && payload.MiscellaneousTypeId != miscellaneous.MiscellaneousTypeId)
+    {
+      var miscellaneousType = await context.MiscellaneousTypes.FindAsync(payload.MiscellaneousTypeId);
+      DoesNotExistException.ThrowIfNull(miscellaneousType, "Bunday ehtiyot qism turi mavjud emas.");
+
+      miscellaneous.MiscellaneousTypeId = (int)payload.MiscellaneousTypeId;
+    }
+
+    if (payload is { Quantity: not null } && !(Math.Abs(miscellaneous.Quantity - (double)payload.Quantity) < 1e-10))
+    {
+      miscellaneous.Quantity = (double)payload.Quantity;
+    }
+
+    if (payload is { Unit: not null } && miscellaneous.Unit != payload.Unit)
+    {
+      miscellaneous.Unit = (Unit)payload.Unit;
+    }
+
+    context.Miscellaneous.Update(miscellaneous);
+    await context.SaveChangesAsync();
+    return Ok();
+  }
+  
+  [HttpDelete("delete-miscellaneous/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> DeleteMiscellaneous(int id)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var miscellaneous = await context.Miscellaneous.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(miscellaneous, "Bunday narsa mavjud emas.");
+
+    context.Miscellaneous.Remove(miscellaneous);
+    await context.SaveChangesAsync();
+    return NoContent();
+  }
+  
   [HttpPatch("update-miscellaneous-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
-  public async Task<ActionResult<MiscellaneousCreateUpdateDto>> UpdateAccessory(int id, MiscellaneousCreateUpdateDto payload)
+  public async Task<ActionResult<MiscellaneousCreateUpdateDto>> UpdateMiscellaneous(int id, MiscellaneousCreateUpdateDto payload)
   {
     var miscellaneousType = await context.MiscellaneousTypes.FindAsync(id);
     DoesNotExistException.ThrowIfNull(miscellaneousType, "O'zgartirmoqchi bo'lingan narsa turi mavjud emas.");
@@ -104,23 +166,74 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
   [HttpGet("list-all-miscellaneous-types")]
   public async Task<ActionResult<List<MiscellaneousTypeListDto>>> ListAllMiscellaneousTypes()
   {
-    var allAccessories = await context.MiscellaneousTypes
+    var allMiscellaneous = await context.MiscellaneousTypes
       .ProjectTo<MiscellaneousTypeListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
-    return Ok(allAccessories);
+    return Ok(allMiscellaneous);
   }
-
-  [HttpGet("list-all-miscellaneous")]
-  public async Task<ActionResult<List<MiscellaneousListAllDto>>> ListAllAccessories()
+  
+  [HttpGet("list-all-miscellaneous-entries")]
+  public async Task<ActionResult<List<MiscellaneousTypeEntryListDto>>> ListAllMiscellaneousEntries()
   {
-    var allAccessories = await context.Miscellaneous
-      .Include(sp => sp.MiscellaneousType)
-      .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage)
-      .ProjectTo<MiscellaneousListAllDto>(mapper.ConfigurationProvider)
+    var allMiscellaneousEntries = await context.MiscellaneousTypes
+      .ProjectTo<MiscellaneousTypeEntryListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
-    return Ok(allAccessories);
+    return Ok(allMiscellaneousEntries);
+  }
+  
+  [HttpGet("list-all-miscellaneous")]
+  public async Task<ActionResult<IEnumerable<MiscellaneousListAllDto>>> ListAllMiscellaneous([FromQuery] MiscellaneousFilters filters)
+  {
+    var query = context.Miscellaneous
+      .Include(sp => sp.AcceptedUser)
+      .Include(sp => sp.FromUser)
+      .Include(sp => sp.MiscellaneousType)
+      .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage);
+
+    if (filters is { TypeId: not null })
+    {
+      query = query.Where(a => a.MiscellaneousTypeId == filters.TypeId);
+    }
+
+    if (filters is { FromUserId: not null })
+    {
+      query = query.Where(a => a.FromUserId == filters.FromUserId);
+    }
+
+    if (filters is { ToUserId: not null })
+    {
+      query = query.Where(a => a.ToUserId == filters.ToUserId);
+    }
+
+    if (filters is { StartDate: not null })
+    {
+      query = query.Where(a => a.Created >= filters.StartDate);
+    }
+
+    if (filters is { EndDate: not null })
+    {
+      query = query.Where(a => a.Created <= filters.EndDate);
+    }
+
+    if (filters is { Status: not null })
+    {
+      query = query.Where(a => a.Status == filters.Status);
+    }
+
+    if (filters is { Limit: not null, Page: not null })
+    {
+      var itemsCount = await query.CountAsync();
+      var pagesCount = itemsCount / filters.Limit;
+
+      query = query.Skip((int)((filters.Page - 1) * filters.Limit)).Take((int)filters.Limit);
+      HttpContext.Response.Headers.Append("X-PagesCount", pagesCount.ToString());
+    }
+
+    var allMiscellaneous = await query.ProjectTo<MiscellaneousListDto>(mapper.ConfigurationProvider).ToListAsync();
+
+    return Ok(allMiscellaneous);
   }
 
   [HttpPost("give-to-master"), Authorize(Policy = "StorageManagerOrSuperAdmin")]
@@ -164,7 +277,7 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
   }
 
   [HttpGet("miscellaneous-sent-to-me"), Authorize(Policy = "Master")]
-  public async Task<ActionResult<IEnumerable<MiscellaneousFlowListDto>>> GetAccessoriesSentToMe()
+  public async Task<ActionResult<IEnumerable<MiscellaneousFlowListDto>>> GetMiscellaneousSentToMe()
   {
     var userId = int.Parse(User.FindFirstValue("id")!);
     var user = await context.Users.FindAsync(userId);
@@ -179,7 +292,7 @@ public class MiscellaneousController(FabriqDbContext context, IMapper mapper) : 
   }
   
   [HttpGet("accept-or-reject-sent-miscellaneous/{id:int}"), Authorize(Policy = "Master")]
-  public async Task<ActionResult> AcceptOrRejectSentAccessories(int id, [FromBody] bool accept)
+  public async Task<ActionResult> AcceptOrRejectSentMiscellaneous(int id, [FromBody] bool accept)
   {
     var userId = int.Parse(User.FindFirstValue("id")!);
     var user = await context.Users.FindAsync(userId);

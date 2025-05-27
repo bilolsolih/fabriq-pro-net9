@@ -3,6 +3,7 @@ using System;
 using FabriqPro;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FabriqPro.Migrations
 {
     [DbContext(typeof(FabriqDbContext))]
-    partial class FabriqDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250518115544_AddedDateToMaterialEntityAndRenamed")]
+    partial class AddedDateToMaterialEntityAndRenamed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,6 +266,9 @@ namespace FabriqPro.Migrations
 
                     b.HasIndex("ToUserId");
 
+                    b.HasIndex("Department", "ToUserId", "AccessoryTypeId", "Status")
+                        .IsUnique();
+
                     b.ToTable("accessory_department", (string)null);
                 });
 
@@ -479,6 +485,9 @@ namespace FabriqPro.Migrations
 
                     b.HasIndex("ToUserId");
 
+                    b.HasIndex("Department", "ToUserId", "MaterialTypeId", "PartyId", "Status")
+                        .IsUnique();
+
                     b.ToTable("material_to_department", (string)null);
                 });
 
@@ -584,6 +593,9 @@ namespace FabriqPro.Migrations
                     b.HasIndex("OriginId");
 
                     b.HasIndex("ToUserId");
+
+                    b.HasIndex("Department", "ToUserId", "MiscellaneousTypeId", "Status")
+                        .IsUnique();
 
                     b.ToTable("miscellaneous_department", (string)null);
                 });
@@ -994,6 +1006,9 @@ namespace FabriqPro.Migrations
 
                     b.HasIndex("ToUserId");
 
+                    b.HasIndex("Department", "ToUserId", "SparePartId", "Status")
+                        .IsUnique();
+
                     b.ToTable("spare_part_department", (string)null);
                 });
 
@@ -1071,7 +1086,7 @@ namespace FabriqPro.Migrations
                         .IsRequired();
 
                     b.HasOne("FabriqPro.Features.Products.Models.Accessory.AccessoryType", "AccessoryType")
-                        .WithMany("Accessories")
+                        .WithMany("AccessoryDepartments")
                         .HasForeignKey("AccessoryTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1399,7 +1414,7 @@ namespace FabriqPro.Migrations
 
             modelBuilder.Entity("FabriqPro.Features.Products.Models.Accessory.AccessoryType", b =>
                 {
-                    b.Navigation("Accessories");
+                    b.Navigation("AccessoryDepartments");
                 });
 
             modelBuilder.Entity("FabriqPro.Features.Products.Models.Color", b =>

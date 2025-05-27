@@ -18,12 +18,12 @@ public class AuthRepository(FabriqDbContext context, IMapper mapper, IHttpContex
 
     public async Task<List<UserListDto>> GetAllAsync(UserFilters filters)
     {
-        var usersQuery = context.Users.AsQueryable();
+        var query = context.Users.AsQueryable();
 
         if (filters is { Search: not null })
         {
             filters.Search = filters.Search.ToLower();
-            usersQuery = usersQuery.Where(
+            query = query.Where(
                 user =>
                     user.FirstName.ToLower().Contains(filters.Search) ||
                     user.LastName.ToLower().Contains(filters.Search) ||
@@ -31,19 +31,24 @@ public class AuthRepository(FabriqDbContext context, IMapper mapper, IHttpContex
             );
         }
 
+        if (filters is { Role: not null })
+        {
+            query = query.Where(u => u.Role == filters.Role);
+        }
+
         if (filters is { Page: not null, Limit: not null })
         {
-            var totalCount = Math.Ceiling(usersQuery.Count() / (double)filters.Limit);
-            httpContextAccessor.HttpContext!.Response.Headers.Append("totalPages", $"{totalCount}");
-            usersQuery = usersQuery.Skip((int)(filters.Limit * (filters.Page - 1)));
+            var totalCount = Math.Ceiling(query.Count() / (double)filters.Limit);
+            httpContextAccessor.HttpContext!.Response.Headers.Append("X-PagesCount", $"{totalCount}");
+            query = query.Skip((int)(filters.Limit * (filters.Page - 1)));
         }
 
         if (filters is { Limit: not null })
         {
-            usersQuery = usersQuery.Take((int)filters.Limit);
+            query = query.Take((int)filters.Limit);
         }
 
-        var users = await usersQuery.ProjectTo<UserListDto>(mapper.ConfigurationProvider).ToListAsync();
+        var users = await query.ProjectTo<UserListDto>(mapper.ConfigurationProvider).ToListAsync();
         return users;
     }
 

@@ -3,6 +3,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FabriqPro.Core.Exceptions;
 using FabriqPro.Features.Authentication.Models;
+using FabriqPro.Features.Products.Controllers.Filters;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Accessory;
@@ -26,23 +27,23 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
     await context.SaveChangesAsync();
     return Ok(payload);
   }
-  
+
   [HttpPatch("update-accessory-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
   public async Task<ActionResult<AccessoryCreateUpdateDto>> UpdateAccessory(int id, AccessoryCreateUpdateDto payload)
   {
     var accessoryType = await context.AccessoryTypes.FindAsync(id);
     DoesNotExistException.ThrowIfNull(accessoryType, "O'zgartirmoqchi bo'lingan aksessuar turi mavjud emas.");
-    
+
     var alreadyExists = await context.AccessoryTypes.AnyAsync(a => a.Title.ToLower() == payload.Title.ToLower() && a.Id != id);
     AlreadyExistsException.ThrowIf(alreadyExists, "Bunday nom bilan boshqa aksessuar mavjud. Boshqa nom tanlang.");
 
     accessoryType.Title = payload.Title;
     context.AccessoryTypes.Update(accessoryType);
-    
+
     await context.SaveChangesAsync();
     return Ok(payload);
   }
-  
+
   [HttpDelete("delete-accessory-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
   public async Task<ActionResult> DeleteAccessoryType(int id)
   {
@@ -100,27 +101,138 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     return Ok(payload);
   }
+  
+  [HttpPatch("update-accessory/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> UpdateAccessory(int id, AccessoryUpdateDto payload)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
 
+    var accessory = await context.Accessories.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(accessory, "Bunday aksessuar mavjud emas.");
+
+    if (payload is { FromUserId: not null } && payload.FromUserId != accessory.FromUserId)
+    {
+      var fromUser = await context.Users.FindAsync(payload.FromUserId);
+      DoesNotExistException.ThrowIfNull(fromUser, "Bunday foydalanuvchi mavjud emas.");
+
+      if (fromUser.Role != UserRoles.Supplier)
+      {
+        return Forbid("Faqat yetkazib beruvchi tanlanishi mumkin.");
+      }
+
+      accessory.FromUserId = (int)payload.FromUserId;
+    }
+
+    if (payload is { AccessoryTypeId: not null } && payload.AccessoryTypeId != accessory.AccessoryTypeId)
+    {
+      var sparePartType = await context.AccessoryTypes.FindAsync(payload.AccessoryTypeId);
+      DoesNotExistException.ThrowIfNull(sparePartType, "Bunday ehtiyot qism turi mavjud emas.");
+
+      accessory.AccessoryTypeId = (int)payload.AccessoryTypeId;
+    }
+
+    if (payload is { Quantity: not null } && !(Math.Abs(accessory.Quantity - (double)payload.Quantity) < 1e-10))
+    {
+      accessory.Quantity = (double)payload.Quantity;
+    }
+
+    if (payload is { Unit: not null } && accessory.Unit != payload.Unit)
+    {
+      accessory.Unit = (Unit)payload.Unit;
+    }
+
+    context.Accessories.Update(accessory);
+    await context.SaveChangesAsync();
+    return Ok();
+  }
+
+  [HttpDelete("delete-accessory/{id:int}"), Authorize(Policy = "SuperAdmin")]
+  public async Task<ActionResult> DeleteAccessory(int id)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var accessory = await context.Accessories.FindAsync(id);
+    DoesNotExistException.ThrowIfNull(accessory, "Bunday aksessuar mavjud emas.");
+
+    context.Accessories.Remove(accessory);
+    await context.SaveChangesAsync();
+    return NoContent();
+  }
+  
   [HttpGet("list-all-accessory-types")]
   public async Task<ActionResult<List<AccessoryTypeListDto>>> ListAllAccessoryTypes()
   {
     var allAccessories = await context.AccessoryTypes
+      .Include(a => a.Accessories)
       .ProjectTo<AccessoryTypeListDto>(mapper.ConfigurationProvider)
+      .ToListAsync();
+
+    return Ok(allAccessories);
+  }
+  
+  [HttpGet("list-all-accessory-entries")]
+  public async Task<ActionResult<List<AccessoryTypeEntryListDto>>> ListAllAccessoryEntries()
+  {
+    var allAccessories = await context.AccessoryTypes
+      .ProjectTo<AccessoryTypeEntryListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
     return Ok(allAccessories);
   }
 
   [HttpGet("list-all-accessories")]
-  public async Task<ActionResult<List<AccessoryListDto>>> ListAllAccessories()
+  public async Task<ActionResult<List<AccessoryListDto>>> ListAllAccessories([FromQuery] AccessoryFilters filters)
   {
-    var allAccessories = await context.Accessories
+    var query = context.Accessories
       .Include(sp => sp.AcceptedUser)
       .Include(sp => sp.FromUser)
       .Include(sp => sp.AccessoryType)
-      .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage)
-      .ProjectTo<AccessoryListDto>(mapper.ConfigurationProvider)
-      .ToListAsync();
+      .Where(sp => sp.Department == Department.Storage && sp.Status == ItemStatus.AcceptedToStorage);
+
+    if (filters is { TypeId: not null })
+    {
+      query = query.Where(a => a.AccessoryTypeId == filters.TypeId);
+    }
+
+    if (filters is { FromUserId: not null })
+    {
+      query = query.Where(a => a.FromUserId == filters.FromUserId);
+    }
+
+    if (filters is { ToUserId: not null })
+    {
+      query = query.Where(a => a.ToUserId == filters.ToUserId);
+    }
+
+    if (filters is { StartDate: not null })
+    {
+      query = query.Where(a => a.Created >= filters.StartDate);
+    }
+
+    if (filters is { EndDate: not null })
+    {
+      query = query.Where(a => a.Created <= filters.EndDate);
+    }
+
+    if (filters is { Status: not null })
+    {
+      query = query.Where(a => a.Status == filters.Status);
+    }
+
+    if (filters is { Limit: not null, Page: not null })
+    {
+      var itemsCount = await query.CountAsync();
+      var pagesCount = itemsCount / filters.Limit;
+
+      query = query.Skip((int)((filters.Page - 1) * filters.Limit)).Take((int)filters.Limit);
+      HttpContext.Response.Headers.Append("X-PagesCount", pagesCount.ToString());
+    }
+
+    var allAccessories = await query.ProjectTo<AccessoryListDto>(mapper.ConfigurationProvider).ToListAsync();
 
     return Ok(allAccessories);
   }
@@ -179,7 +291,7 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     return Ok(result);
   }
-  
+
   [HttpGet("accept-or-reject-sent-accessories/{id:int}"), Authorize(Policy = "Master")]
   public async Task<ActionResult> AcceptOrRejectSentAccessories(int id, [FromBody] bool accept)
   {
@@ -252,7 +364,8 @@ public class AccessoryController(FabriqDbContext context, IMapper mapper) : Cont
 
     var originAccessory = await context.Accessories.FindAsync(accessory.OriginId);
     DoesNotExistException.ThrowIfNull(
-      originAccessory, "Aksessuar qaytarilmoqchi bo'lindi, lekin ombordagi ildizi topilmadi."
+      originAccessory,
+      "Aksessuar qaytarilmoqchi bo'lindi, lekin ombordagi ildizi topilmadi."
     );
 
     var newAccessoryTransfer = accessory with

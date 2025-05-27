@@ -3,6 +3,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FabriqPro.Core.Exceptions;
 using FabriqPro.Features.Authentication.Models;
+using FabriqPro.Features.Products.Controllers.Filters;
 using FabriqPro.Features.Products.DTOs;
 using FabriqPro.Features.Products.Models;
 using FabriqPro.Features.Products.Models.Material;
@@ -33,17 +34,17 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
   {
     var materialType = await context.MaterialTypes.FindAsync(id);
     DoesNotExistException.ThrowIfNull(materialType, "O'zgartirmoqchi bo'lingan material turi mavjud emas.");
-    
+
     var alreadyExists = await context.MaterialTypes.AnyAsync(m => m.Title.ToLower() == payload.Title.ToLower() && m.Id != id);
     AlreadyExistsException.ThrowIf(alreadyExists, "Bunday nom bilan boshqa metarial mavjud. Boshqa nom tanlang.");
 
     materialType.Title = payload.Title;
     context.MaterialTypes.Update(materialType);
-    
+
     await context.SaveChangesAsync();
     return Ok(payload);
   }
-  
+
   [HttpDelete("delete-material-type/{id:int}"), Authorize(Policy = "SuperAdmin")]
   public async Task<ActionResult> DeleteMaterialType(int id)
   {
@@ -54,7 +55,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     var materialType = await context.MaterialTypes.FindAsync(id);
     DoesNotExistException.ThrowIfNull(materialType, "Bunday material turi mavjud emas.");
 
-    var hasAnyMaterials = await context.Materials.AnyAsync(m => m.MaterialId == materialType.Id);
+    var hasAnyMaterials = await context.Materials.AnyAsync(m => m.MaterialTypeId == materialType.Id);
     if (hasAnyMaterials)
     {
       return BadRequest("Bu material turiga bog'langan materiallar mavjud, o'chirish mumkin emas.");
@@ -63,6 +64,58 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
     context.MaterialTypes.Remove(materialType);
     await context.SaveChangesAsync();
     return NoContent();
+  }
+
+  [HttpGet("list-all-materials")]
+  public async Task<ActionResult> ListAllMaterials([FromQuery] MaterialFilters filters)
+  {
+    var userId = int.Parse(User.FindFirstValue("id")!);
+    var user = await context.Users.FindAsync(userId);
+    DoesNotExistException.ThrowIfNull(user, "Qaytadan login qilib yana urinib ko'ring.");
+
+    var query = context.Materials.AsQueryable();
+    if (filters is { TypeId: not null })
+    {
+      query = query.Where(m => m.MaterialTypeId == filters.TypeId);
+    }
+
+    if (filters is { FromUserId: not null })
+    {
+      query = query.Where(m => m.FromUserId == filters.FromUserId);
+    }
+
+    if (filters is { ToUserId: not null })
+    {
+      query = query.Where(m => m.ToUserId == filters.ToUserId);
+    }
+
+    if (filters is { StartDate: not null })
+    {
+      query = query.Where(m => m.Date >= filters.StartDate);
+    }
+
+    if (filters is { EndDate: not null })
+    {
+      query = query.Where(m => m.Date <= filters.EndDate);
+    }
+
+    if (filters is { Status: not null })
+    {
+      query = query.Where(m => m.Status == filters.Status);
+    }
+
+    if (filters is { Limit: not null, Page: not null })
+    {
+      var itemsCount = await query.CountAsync();
+      var pagesCount = itemsCount / filters.Limit;
+
+      query = query.Skip((int)((filters.Page - 1) * filters.Limit)).Take((int)filters.Limit);
+      HttpContext.Response.Headers.Append("X-PagesCount", pagesCount.ToString());
+    }
+
+
+    var materials = await query.ProjectTo<MaterialListDto>(mapper.ConfigurationProvider).ToListAsync();
+    return Ok(materials);
   }
 
   [HttpPost("add-to-storage"), Authorize(Policy = "StorageManagerOrSuperAdmin")]
@@ -95,7 +148,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       var materialToDepartment = await context.Materials.SingleOrDefaultAsync(m =>
         m.Department == Department.Storage &&
         m.AcceptedUserId == user.Id &&
-        m.MaterialId == payload.MaterialId &&
+        m.MaterialTypeId == payload.MaterialId &&
         m.PartyId == newParty.Id
       );
 
@@ -107,7 +160,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
         FromUserId = payload.FromUserId,
         AcceptedUserId = user.Id,
         ToUserId = user.Id,
-        MaterialId = material.Id,
+        MaterialTypeId = material.Id,
         PartyId = newParty.Id,
         ColorId = payload.ColorId,
         Thickness = payload.Thickness,
@@ -116,6 +169,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
         Quantity = payload.Quantity,
         Unit = payload.Unit,
         Status = ItemStatus.Accepted,
+        Date = payload.Date,
       };
 
       context.Materials.Add(newMaterialToDepartment);
@@ -151,7 +205,7 @@ public class MaterialController(FabriqDbContext context, IMapper mapper) : Contr
       .Include(m => m.AcceptedUser)
       .Include(m => m.MaterialType)
       .Include(m => m.Party)
-      .Where(m => m.Department == Department.Storage && m.MaterialId == id)
+      .Where(m => m.Department == Department.Storage && m.MaterialTypeId == id)
       .ProjectTo<MaterialListDto>(mapper.ConfigurationProvider)
       .ToListAsync();
 
